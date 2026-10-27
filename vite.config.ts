@@ -5,6 +5,10 @@ import path from 'path'
 
 export default defineConfig({
   assetsInclude: ['**/*.glb'],
+  server: {
+    host: '0.0.0.0',
+    allowedHosts: ['terminal.local'],
+  },
   plugins: [react(),
             tailwindcss() 
             ],
@@ -14,6 +18,5 @@ export default defineConfig({
     	    },
   	  }
 })
-
 
 

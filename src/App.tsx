@@ -1,742 +1,399 @@
-// import { useState, useRef, useEffect } from 'react'
-// import gsap from 'gsap'
-// import { ScrollTrigger } from 'gsap/ScrollTrigger'
-// import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
-// import { useGSAP } from '@gsap/react'
-// import resumeFile from './assets/resume/Hannah-Sheen-Resume.pdf';
+import { useEffect, useState } from 'react'
+import type { FormEvent } from 'react'
+import portrait from './assets/images/for_lanyard.jpg'
+import resume from './assets/resume/Hannah-Sheen-Resume.pdf'
+import catLaptop from './assets/cats/cat-laptop.jpg'
+import catCouch from './assets/cats/cat-couch-laptop.jpg'
+import catSleepy from './assets/cats/cat-sleepy.jpg'
+import ciudad from './assets/projects/ciudad.png'
+import archivist from './assets/projects/tas.jpeg'
+import quizOdyssey from './assets/projects/quiz_odessey.png'
+import lifewoodWebsite from './assets/projects/lifewood-website.png'
+import pfcSystem from './assets/projects/PFCSystem.png'
 
-// // Register Premium GSAP Core Components
-// gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
+type Project = {
+  number: string
+  title: string
+  client: string
+  description: string
+  image: string
+  stack: string[]
+  link: string
+}
 
-// // Component Section Imports
-// import Home from './pages/home.tsx'
-// import About from './pages/about.tsx'
-// import Contact from './pages/contact.tsx'
-// import Experience from './pages/experience.tsx'
-// import Skills from './pages/skills.tsx'
-// import Projects from './pages/projects.tsx'
-// import Chatbot from './pages/chatbot.tsx'
+const navigation = ['about', 'experience', 'projects', 'skills', 'contact']
 
-// // Navigation Configurations
-// const navLinks = [
-//   { label: 'Home', target: '#home' },
-//   { label: 'About Me', target: '#about' },
-//   { label: 'Experience', target: '#experience'},
-//   { label: 'Projects', target: '#projects' },
-//   { label: 'Skills', target: '#skills' },
-//   { label: 'Contact Me', target: '#contact' }
-// ]
-
-// // Social Links SVG Map
-// const socialLinks = [
-//   { id: 'github', url: 'https://github.com/hannah-sheen', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /> },
-//   { id: 'linkedin', url: 'https://www.linkedin.com/in/hannah-sheen-obejero-8a44b63a4', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" /> },
-//   { 
-//     id: 'instagram', 
-//     url: 'https://www.instagram.com/haruuxnna_/', 
-//     icon: (
-//       <>
-//         <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-//         <path strokeLinecap="round" strokeLinejoin="round" d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37zM17.5 6.5h.01" />
-//       </>
-//     ) 
-//   },
-//   { id: 'facebook', url: 'https://www.facebook.com/missmaem', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /> }
-// ]
-
-// function useIsMobile(breakpoint = 768) {
-//   const [isMobile, setIsMobile] = useState(() => 
-//     typeof window !== 'undefined' ? window.innerWidth < breakpoint : false
-//   )
-//   useEffect(() => {
-//     const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`)
-//     const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches)
-//     mq.addEventListener('change', handler)
-//     setIsMobile(mq.matches)
-//     return () => mq.removeEventListener('change', handler)
-//   }, [breakpoint])
-//   return isMobile
-// }
-
-// export default function App() {
-//   const [menuOpen, setMenuOpen] = useState(false)
-//   const [chatOpen, setChatOpen] = useState(false)
-//   const [isHovered, setIsHovered] = useState(false)
-
-//   const containerRef = useRef<HTMLDivElement>(null)
-//   const isScrolling = useRef(false)
-//   const isMobile = useIsMobile()
-
-//   // --- PREMIUM INERTIAL SCROLL SNAP ENGINE ---
-//   useGSAP(() => {
-//     if (isMobile) return
-
-//     const panels = gsap.utils.toArray('.premium-panel')
-
-//     const observer = ScrollTrigger.observe({
-//       target: window,
-//       type: "wheel,touch,pointer",
-//       wheelSpeed: 1,
-//       tolerance: 15,
-//       preventDefault: true, 
-//       onUp: (_self) => {
-//         const activeCanvas = document.querySelector('canvas[data-dragging="true"]')
-//         const activeDOMDrag = document.body.getAttribute('data-dragging') === 'true'
-        
-//         if (!isScrolling.current && !activeCanvas && !activeDOMDrag) {
-//           goToPanel(getActiveIndex() - 1)
-//         }
-//       },
-//       onDown: (_self) => {
-//         const activeCanvas = document.querySelector('canvas[data-dragging="true"]')
-//         const activeDOMDrag = document.body.getAttribute('data-dragging') === 'true'
-        
-//         if (!isScrolling.current && !activeCanvas && !activeDOMDrag) {
-//           goToPanel(getActiveIndex() + 1)
-//         }
-//       },
-//     })
-
-//     const handleGlobalTouch = (e: TouchEvent | PointerEvent | WheelEvent) => {
-//       const activeCanvas = document.querySelector('canvas[data-dragging="true"]')
-//       const activeDOMDrag = document.body.getAttribute('data-dragging') === 'true'
-//       if (activeCanvas || activeDOMDrag) {
-//         e.stopPropagation() 
-//       }
-//     }
-
-//     window.addEventListener('wheel', handleGlobalTouch, { passive: false })
-//     window.addEventListener('touchstart', handleGlobalTouch, { passive: false })
-//     window.addEventListener('pointerdown', handleGlobalTouch, { passive: false })
-
-//     return () => {
-//       observer.kill()
-//       window.removeEventListener('wheel', handleGlobalTouch)
-//       window.removeEventListener('touchstart', handleGlobalTouch)
-//       window.removeEventListener('pointerdown', handleGlobalTouch)
-//     }
-
-//     function getActiveIndex() {
-//       const scrollY = window.scrollY
-//       const height = window.innerHeight
-//       return Math.round(scrollY / height)
-//     }
-
-//     function goToPanel(index: number) {
-//       if (index < 0 || index >= panels.length) return
-//       isScrolling.current = true
-      
-//       gsap.to(window, {
-//         scrollTo: { y: index * window.innerHeight, autoKill: false },
-//         duration: 0.9, 
-//         ease: "power3.inOut",
-//         onComplete: () => {
-//           isScrolling.current = false
-//         }
-//       })
-//     }
-//   }, { scope: containerRef, dependencies: [isMobile] })
-
-//   const handleMouseLeave = () => {
-//     setIsHovered(false)
-//     setMenuOpen(false)
-//   }
-
-//   const handleNavClick = (target: string) => {
-//     setMenuOpen(false)
-//     setIsHovered(false)
-//     const element = document.querySelector(target)
-//     if (element) {
-//       isScrolling.current = true
-//       gsap.to(window, {
-//         scrollTo: { y: element, autoKill: false },
-//         duration: 1.1,
-//         ease: "power4.inOut",
-//         onComplete: () => { 
-//           isScrolling.current = false 
-//         }
-//       })
-//     }
-//   }
-
-//   return (
-//     <div ref={containerRef} className="w-full min-h-screen bg-[#030712] text-white relative">
-      
-//       {/* PREMIUM FLOATING UTILITY DOCK (Mobile Only) */}
-//       <div className="fixed top-5 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-md h-12 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-full z-50 flex md:hidden items-center justify-between px-2 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-        
-//         {/* Navigation Dropdown Trigger */}
-//         <button
-//           onClick={() => setMenuOpen(o => !o)}
-//           className={`h-8 px-3.5 rounded-full flex items-center justify-center gap-1.5 transition-all text-[11px] font-mono tracking-wider ${
-//             menuOpen ? 'bg-indigo-600 text-white font-bold' : 'bg-white/5 border border-white/5 text-slate-300'
-//           }`}
-//         >
-//           <span>MENU</span>
-//           <svg className="w-3 h-3 transition-transform duration-300" style={{ transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-//             <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-//           </svg>
-//         </button>
-
-//         {/* Minimal Social Links Cluster */}
-//         <div className="flex items-center gap-1">
-//           {socialLinks.map((social) => (
-//             <a
-//               key={social.id}
-//               href={social.url}
-//               target="_blank"
-//               rel="noopener noreferrer"
-//               className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors"
-//             >
-//               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-//                 {social.icon}
-//               </svg>
-//             </a>
-//           ))}
-//         </div>
-
-//         {/* High-End Mini Resume Anchor */}
-//         <a
-//           href={resumeFile}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//           className="h-8 px-3.5 rounded-full bg-white text-black font-semibold text-[10px] tracking-wider uppercase flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-transform"
-//         >
-//           <span>CV</span>
-//         </a>
-
-//         {/* Micro-Navigation Slideoverlay Menu */}
-//         <div 
-//           className={`absolute top-14 left-0 right-0 bg-[#050914]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-3 flex flex-col gap-1 transition-all duration-300 shadow-2xl origin-top ${
-//             menuOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-95 opacity-0 pointer-events-none'
-//           }`}
-//         >
-//           {navLinks.map(link => (
-//             <button
-//               key={link.label}
-//               onClick={() => handleNavClick(link.target)}
-//               className="w-full text-left py-2 px-4 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-all text-center"
-//             >
-//               {link.label}
-//             </button>
-//           ))}
-//         </div>
-//       </div>
-
-//       {/* FULL PAGE EDITORIAL VERTICAL SECTIONS */}
-//       <div className="premium-panel" id="home"><Home /></div>
-//       <div className="premium-panel" id="about"><About /></div>
-//       <div className="premium-panel" id="experience"><Experience /></div>
-//       <div className="premium-panel" id="projects"><Projects /></div>
-//       <div className="premium-panel" id="skills"><Skills /></div>
-//       <div className="premium-panel" id="contact"><Contact /></div>
-
-//       {/* FIXED LAYER: Adaptive Chatbot Component Mounting View */}
-//       <Chatbot isOpen={chatOpen} onClose={() => setChatOpen(false)} />
-
-//       {/* DESKTOP EXCLUSIVE FIXED SOCIAL SIDEBAR BAR */}
-//       <div className="fixed left-6 bottom-0 z-50 hidden md:flex flex-col items-center gap-5 after:content-[''] after:w-[1px] after:h-24 after:bg-gradient-to-b after:from-slate-700/80 after:to-transparent">
-//         <a
-//           href={resumeFile}
-//           target="_blank"
-//           rel="noopener noreferrer"
-//           title="View Resume"
-//           className="text-slate-500 hover:text-indigo-400 hover:-translate-y-0.5 transition-all duration-300 mb-1"
-//         >
-//           <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-//             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-//           </svg>
-//         </a>
-
-//         {socialLinks.map((social) => (
-//           <a
-//             key={social.id}
-//             href={social.url}
-//             target="_blank"
-//             rel="noopener noreferrer"
-//             className="text-slate-500 hover:text-indigo-400 hover:-translate-y-0.5 transition-all duration-300"
-//           >
-//             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-//               {social.icon}
-//             </svg>
-//           </a>
-//         ))}
-//       </div>
-
-//       {/* GLOBAL FLOATING CENTER DOCK SYSTEM (Desktop-Only Setup) */}
-//       <div
-//         className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 p-4 transition-all duration-300 hidden md:block"
-//         onMouseEnter={() => setIsHovered(true)}
-//         onMouseLeave={handleMouseLeave}
-//       >
-//         <div className="flex items-center justify-center gap-6 relative">
-
-//           {/* CHATBOT TRIGGER BUTTON LAYER */}
-//           <div
-//             className="relative transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-20"
-//             style={{
-//               opacity: isHovered ? 1 : 0,
-//               transform: isHovered ? 'translateX(0px) scale(1)' : 'translateX(25px) scale(0.4)',
-//               pointerEvents: isHovered || chatOpen ? 'auto' : 'none',
-//             }}
-//           >
-//             <button
-//               onClick={() => { setChatOpen(o => !o); setMenuOpen(false) }}
-//               className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all shadow-lg cursor-pointer ${
-//                 chatOpen 
-//                   ? 'bg-indigo-500/20 border-indigo-400 text-indigo-400' 
-//                   : 'bg-[#1e293b] border-white/10 text-slate-300 hover:border-indigo-400/50 hover:bg-[#1e293b]/80'
-//               }`}
-//             >
-//               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-//                 <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-//               </svg>
-//             </button>
-//           </div>
-
-//           {/* DOCK INTERACTIVE GLOWING CORE ANCHOR */}
-//           <div className="w-14 h-14 flex items-center justify-center shrink-0 relative z-10">
-//             <div className={`absolute inset-0 rounded-full blur-xl transition-all duration-500 ${isHovered ? 'bg-indigo-500/10 scale-75' : 'bg-indigo-500/40 scale-110 animate-pulse'}`} />
-//             <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500 shadow-xl ${isHovered ? 'bg-slate-900/60 border-white/10 scale-90' : 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 border-indigo-400/40 shadow-[0_0_20px_rgba(99,102,241,0.55)] scale-100'}`}>
-//               <div className={`rounded-full transition-all duration-500 ${isHovered ? 'w-2 h-2 bg-slate-500' : 'w-3 h-3 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]'}`} />
-//             </div>
-//           </div>
-
-//           {/* NAVIGATION MENU BUTTON LAYER */}
-//           <div
-//             className="relative transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-20"
-//             style={{
-//               opacity: isHovered ? 1 : 0,
-//               transform: isHovered ? 'translateX(0px) scale(1)' : 'translateX(-25px) scale(0.4)',
-//               pointerEvents: isHovered || menuOpen ? 'auto' : 'none',
-//             }}
-//           >
-//             <div
-//               className="absolute bottom-full left-1/2 -translate-x-1/2 mb-5 flex flex-col items-center gap-2"
-//               style={{
-//                 opacity: menuOpen ? 1 : 0,
-//                 transform: menuOpen ? 'translateY(0)' : 'translateY(8px)',
-//                 pointerEvents: menuOpen ? 'auto' : 'none',
-//                 transition: 'opacity 0.3s ease, transform 0.3s cubic-bezier(0.22,1,0.36,1)',
-//               }}
-//             >
-//               {navLinks.map(link => (
-//                 <button
-//                   key={link.label}
-//                   onClick={() => handleNavClick(link.target)}
-//                   className="px-5 py-2 rounded-xl text-sm font-medium text-white bg-white/10 backdrop-blur-md border border-white/15 hover:bg-indigo-500/30 hover:border-indigo-400/40 transition-all shadow-lg w-32 text-center cursor-pointer"
-//                 >
-//                   {link.label}
-//                 </button>
-//               ))}
-//             </div>
-
-//             <button
-//               onClick={() => { setMenuOpen(o => !o); setChatOpen(false) }}
-//               className="w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg border border-indigo-500/50 cursor-pointer"
-//             >
-//               <svg
-//                 className="w-5 h-5 text-white transition-transform duration-300"
-//                 style={{ transform: menuOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}
-//                 fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-//               >
-//                 {menuOpen
-//                   ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-//                   : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-//                 }
-//               </svg>
-//             </button>
-//           </div>
-
-//         </div>
-//       </div>
-
-//       {/* MOBILE FLOATING ACTION CHAT FAB */}
-//       <button
-//         onClick={() => setChatOpen(o => !o)}
-//         className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl flex items-center justify-center border transition-all shadow-xl cursor-pointer md:hidden ${
-//           chatOpen 
-//             ? 'bg-indigo-500/20 border-indigo-400 text-indigo-400 backdrop-blur-md' 
-//             : 'bg-indigo-600 border-indigo-500/50 text-white hover:bg-indigo-500'
-//         }`}
-//       >
-//         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-//           {chatOpen ? (
-//             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-//           ) : (
-//             <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-//           )}
-//         </svg>
-//       </button>
-
-//     </div>
-//   )
-// }
-
-import { useState, useRef } from 'react'
-import gsap from 'gsap'
-import { ScrollTrigger } from 'gsap/ScrollTrigger'
-import { ScrollToPlugin } from 'gsap/ScrollToPlugin'
-import { useGSAP } from '@gsap/react'
-import resumeFile from './assets/resume/Hannah-Sheen-Resume.pdf';
-
-// Register Premium GSAP Core Components
-gsap.registerPlugin(ScrollTrigger, ScrollToPlugin)
-
-// Component Section Imports
-import Home from './pages/home.tsx'
-import About from './pages/about.tsx'
-import Contact from './pages/contact.tsx'
-import Experience from './pages/experience.tsx'
-import Skills from './pages/skills.tsx'
-import Projects from './pages/projects.tsx'
-import Chatbot from './pages/chatbot.tsx'
-
-// Navigation Configurations
-const navLinks = [
-  { label: 'Home', target: '#home' },
-  { label: 'About Me', target: '#about' },
-  { label: 'Experience', target: '#experience'},
-  { label: 'Projects', target: '#projects' },
-  { label: 'Skills', target: '#skills' },
-  { label: 'Contact Me', target: '#contact' }
-]
-
-// Social Links SVG Map
-const socialLinks = [
-  { id: 'github', url: 'https://github.com/hannah-sheen', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" /> },
-  { id: 'linkedin', url: 'https://www.linkedin.com/in/hannah-sheen-obejero-8a44b63a4', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2zM4 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z" /> },
-  { 
-    id: 'instagram', 
-    url: 'https://www.instagram.com/haruuxnna_/', 
-    icon: (
-      <>
-        <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37zM17.5 6.5h.01" />
-      </>
-    ) 
+const experiences = [
+  {
+    period: 'Present',
+    role: 'IT Executive Assistant',
+    company: 'Lifewood Data Technology',
+    description:
+      'Supporting day-to-day IT operations while keeping people, priorities, and technical work organized and moving forward.',
+    current: true,
   },
-  { id: 'facebook', url: 'https://www.facebook.com/missmaem', icon: <path strokeLinecap="round" strokeLinejoin="round" d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" /> }
+  {
+    period: '2025',
+    role: 'Logistics Officer',
+    company: 'Google Developer Groups on Campus - CTUMC',
+    description:
+      'Coordinated equipment, venue preparation, and event logistics for developer bootcamps and student tech workshops.',
+  },
+  {
+    period: '2024',
+    role: 'Project Management Lead',
+    company: 'Cebu Technological University',
+    description:
+      'Led the development of BARIOS, an administrative platform designed to reduce manual barangay workflows.',
+  },
+  {
+    period: '2024',
+    role: 'Technical Instructor',
+    company: 'Brgy. San Roque',
+    description:
+      'Delivered hands-on digital literacy and system training with the CTU Main CCICT extension team.',
+  },
+  {
+    period: '2023',
+    role: 'Back End Intern',
+    company: 'Camtastic Philippines Corp.',
+    description: 'Built backend logic and worked with Pascal and SQL-based systems.',
+  },
+  {
+    period: '2023',
+    role: 'IT Intern',
+    company: 'Lifewood Data Technology PH',
+    description:
+      'Explored enterprise workflows, prompt engineering, efficient coding, and modern AI tools.',
+  },
 ]
 
+const projects: Project[] = [
+  {
+    number: '01',
+    title: 'CIUDAD (BARIOS)',
+    client: 'Brgy. San Roque',
+    description:
+      'A full-stack administrative platform for records, requests, and automated document workflows.',
+    image: ciudad,
+    stack: ['React Native', 'TypeScript', 'Django', 'PostgreSQL'],
+    link: 'https://github.com/hannah-sheen/CIUDAD-APP-BARIOS',
+  },
+  {
+    number: '02',
+    title: "The Archivist's Silence",
+    client: 'Lifewood Data Technology PH',
+    description:
+      'A 2D isometric tactical puzzle game set inside quiet, abandoned structural ruins.',
+    image: archivist,
+    stack: ['Godot', 'GDScript', 'Gemini AI'],
+    link: 'https://github.com/hannah-sheen/tas',
+  },
+  {
+    number: '03',
+    title: 'Quiz Odyssey',
+    client: 'Cebu Technological University',
+    description:
+      'A generative learning tool that turns source material into structured practice quizzes.',
+    image: quizOdyssey,
+    stack: ['JavaScript', 'Gemini AI', 'HTML', 'CSS'],
+    link: 'https://github.com/hannah-sheen/PROJECT_QUIZODYSSEY',
+  },
+  {
+    number: '04',
+    title: 'Lifewood Website',
+    client: 'Lifewood Data Technology PH',
+    description:
+      'A polished, responsive company website designed for clarity, speed, and localization.',
+    image: lifewoodWebsite,
+    stack: ['React', 'Tailwind CSS', 'Supabase'],
+    link: 'https://github.com/hannah-sheen/lifewood-Website',
+  },
+  {
+    number: '05',
+    title: 'PFC System',
+    client: 'People Fitness Center',
+    description:
+      'A fitness management system for memberships, attendance, performance, and schedules.',
+    image: pfcSystem,
+    stack: ['Python', 'SQL', 'Desktop UI'],
+    link: 'https://github.com/hannah-sheen/PFCSystem',
+  },
+]
 
-export default function App() {
+const skillGroups = [
+  {
+    title: 'I speak these',
+    items: ['Python', 'Java', 'JavaScript', 'TypeScript', 'SQL', 'HTML', 'CSS'],
+  },
+  {
+    title: 'I build with these',
+    items: ['React', 'React Native', 'Django', 'Node.js', 'Flask', 'Tailwind CSS'],
+  },
+  {
+    title: 'I store things here',
+    items: ['PostgreSQL', 'MySQL', 'Supabase', 'MongoDB', 'SSMS'],
+  },
+  {
+    title: 'Daily toolbox',
+    items: ['Git', 'GitHub', 'VS Code', 'Figma', 'AI-assisted workflows'],
+  },
+]
+
+const catNotes = [
+  'Debugging posture: suspiciously hunched.',
+  'Current status: one tab away from greatness.',
+  'The code works. Nobody touch anything.',
+]
+
+function App() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [chatOpen, setChatOpen] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
+  const [activeProject, setActiveProject] = useState<Project | null>(null)
+  const [catNote, setCatNote] = useState(0)
+  const [formStatus, setFormStatus] = useState('')
 
-  const containerRef = useRef<HTMLDivElement>(null)
-  const isScrolling = useRef(false)
-  // const isMobile = useIsMobile()
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setActiveProject(null)
+    }
 
-  // --- PREMIUM INERTIAL SCROLL SNAP ENGINE ---
-  useGSAP(() => {
-    // 💡 Setup media queries directly inside GSAP to track breakpoints natively
-    const mm = gsap.matchMedia();
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
-    mm.add("(min-width: 768px)", () => {
-      const panels = gsap.utils.toArray('.premium-panel')
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setFormStatus('Sending...')
+    const form = event.currentTarget
+    const payload = Object.fromEntries(new FormData(form))
 
-      const observer = ScrollTrigger.observe({
-        target: window,
-        type: "wheel,touch,pointer",
-        wheelSpeed: 1,
-        tolerance: 15,
-        preventDefault: true, 
-        onUp: (_self) => {
-          const activeCanvas = document.querySelector('canvas[data-dragging="true"]')
-          const activeDOMDrag = document.body.getAttribute('data-dragging') === 'true'
-          
-          if (!isScrolling.current && !activeCanvas && !activeDOMDrag) {
-            goToPanel(getActiveIndex() - 1)
-          }
-        },
-        onDown: (_self) => {
-          const activeCanvas = document.querySelector('canvas[data-dragging="true"]')
-          const activeDOMDrag = document.body.getAttribute('data-dragging') === 'true'
-          
-          if (!isScrolling.current && !activeCanvas && !activeDOMDrag) {
-            goToPanel(getActiveIndex() + 1)
-          }
-        },
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       })
 
-      const handleGlobalTouch = (e: TouchEvent | PointerEvent | WheelEvent) => {
-        const activeCanvas = document.querySelector('canvas[data-dragging="true"]')
-        const activeDOMDrag = document.body.getAttribute('data-dragging') === 'true'
-        if (activeCanvas || activeDOMDrag) {
-          e.stopPropagation() 
-        }
-      }
-
-      window.addEventListener('wheel', handleGlobalTouch, { passive: false })
-      window.addEventListener('touchstart', handleGlobalTouch, { passive: false })
-      window.addEventListener('pointerdown', handleGlobalTouch, { passive: false })
-
-      // 💡 This block cleans up automatically when your viewport shrinks beneath 768px
-      return () => {
-        observer.kill()
-        window.removeEventListener('wheel', handleGlobalTouch)
-        window.removeEventListener('touchstart', handleGlobalTouch)
-        window.removeEventListener('pointerdown', handleGlobalTouch)
-      }
-
-      function getActiveIndex() {
-        const scrollY = window.scrollY
-        const height = window.innerHeight
-        return Math.round(scrollY / height)
-      }
-
-      function goToPanel(index: number) {
-        if (index < 0 || index >= panels.length) return
-        isScrolling.current = true
-        
-        gsap.to(window, {
-          scrollTo: { y: index * window.innerHeight, autoKill: false },
-          duration: 0.9, 
-          ease: "power3.inOut",
-          onComplete: () => {
-            isScrolling.current = false
-          }
-        })
-      }
-    });
-
-    return () => mm.revert();
-  }, { scope: containerRef, dependencies: [] })
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-    setMenuOpen(false)
-  }
-
-  const handleNavClick = (target: string) => {
-    setMenuOpen(false)
-    setIsHovered(false)
-    const element = document.querySelector(target)
-    if (element) {
-      isScrolling.current = true
-      gsap.to(window, {
-        scrollTo: { y: element, autoKill: false },
-        duration: 1.1,
-        ease: "power4.inOut",
-        onComplete: () => { 
-          isScrolling.current = false 
-        }
-      })
+      if (!response.ok) throw new Error('Unable to send')
+      form.reset()
+      setFormStatus('Message sent. Thank you!')
+    } catch {
+      setFormStatus('Email me directly at hannahsheen12@gmail.com')
     }
   }
 
   return (
-    <div ref={containerRef} className="w-full min-h-screen bg-[#030712] text-white relative">
-      
-      {/* PREMIUM FLOATING UTILITY DOCK (Mobile Only) */}
-      <div className="fixed top-5 left-1/2 -translate-x-1/2 w-[calc(100%-2.5rem)] max-w-md h-12 bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-full z-50 flex md:hidden items-center justify-between px-2 shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-        
-        {/* Navigation Dropdown Trigger */}
+    <div className="site-shell">
+      <header className="site-header">
+        <a className="brand" href="#top" aria-label="Hannah Sheen home">
+          HS<span>.</span>
+        </a>
         <button
-          onClick={() => setMenuOpen(o => !o)}
-          className={`h-8 px-3.5 rounded-full flex items-center justify-center gap-1.5 transition-all text-[11px] font-mono tracking-wider ${
-            menuOpen ? 'bg-indigo-600 text-white font-bold' : 'bg-white/5 border border-white/5 text-slate-300'
-          }`}
+          className="menu-button"
+          type="button"
+          aria-label="Toggle navigation"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
         >
-          <span>MENU</span>
-          <svg className="w-3 h-3 transition-transform duration-300" style={{ transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-          </svg>
+          {menuOpen ? 'close' : 'menu'}
         </button>
-
-        {/* Minimal Social Links Cluster */}
-        <div className="flex items-center gap-1">
-          {socialLinks.map((social) => (
-            <a
-              key={social.id}
-              href={social.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors"
-            >
-              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                {social.icon}
-              </svg>
+        <nav className={menuOpen ? 'site-nav is-open' : 'site-nav'} aria-label="Main navigation">
+          {navigation.map((item) => (
+            <a key={item} href={`#${item}`} onClick={() => setMenuOpen(false)}>
+              {item}
             </a>
           ))}
-        </div>
+        </nav>
+      </header>
 
-        {/* High-End Mini Resume Anchor */}
-        <a
-          href={resumeFile}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="h-8 px-3.5 rounded-full bg-white text-black font-semibold text-[10px] tracking-wider uppercase flex items-center justify-center gap-1 shadow-sm active:scale-95 transition-transform"
-        >
-          <span>CV</span>
-        </a>
-
-        {/* Micro-Navigation Slideoverlay Menu */}
-        <div 
-          className={`absolute top-14 left-0 right-0 bg-[#050914]/95 backdrop-blur-xl border border-white/10 rounded-2xl p-3 flex flex-col gap-1 transition-all duration-300 shadow-2xl origin-top ${
-            menuOpen ? 'scale-100 opacity-100 pointer-events-auto' : 'scale-95 opacity-0 pointer-events-none'
-          }`}
-        >
-          {navLinks.map(link => (
-            <button
-              key={link.label}
-              onClick={() => handleNavClick(link.target)}
-              className="w-full text-left py-2 px-4 rounded-xl text-xs font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-all text-center"
-            >
-              {link.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* FULL PAGE EDITORIAL VERTICAL SECTIONS */}
-      <div className="premium-panel" id="home"><Home /></div>
-      <div className="premium-panel" id="about"><About /></div>
-      <div className="premium-panel" id="experience"><Experience /></div>
-      <div className="premium-panel" id="projects"><Projects /></div>
-      <div className="premium-panel" id="skills"><Skills /></div>
-      <div className="premium-panel" id="contact"><Contact /></div>
-
-      {/* FIXED LAYER: Adaptive Chatbot Component Mounting View */}
-      <Chatbot isOpen={chatOpen} onClose={() => setChatOpen(false)} />
-
-      {/* DESKTOP EXCLUSIVE FIXED SOCIAL SIDEBAR BAR */}
-      <div className="fixed left-6 bottom-0 z-50 hidden md:flex flex-col items-center gap-5 after:content-[''] after:w-[1px] after:h-24 after:bg-gradient-to-b after:from-slate-700/80 after:to-transparent">
-        <a
-          href={resumeFile}
-          target="_blank"
-          rel="noopener noreferrer"
-          title="View Resume"
-          className="text-slate-500 hover:text-indigo-400 hover:-translate-y-0.5 transition-all duration-300 mb-1"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </a>
-
-        {socialLinks.map((social) => (
-          <a
-            key={social.id}
-            href={social.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-slate-500 hover:text-indigo-400 hover:-translate-y-0.5 transition-all duration-300"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              {social.icon}
-            </svg>
-          </a>
-        ))}
-      </div>
-
-      {/* GLOBAL FLOATING CENTER DOCK SYSTEM (Desktop-Only Setup) */}
-      <div
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 p-4 transition-all duration-300 hidden md:block"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={handleMouseLeave}
-      >
-        <div className="flex items-center justify-center gap-6 relative">
-
-          {/* CHATBOT TRIGGER BUTTON LAYER */}
-          <div
-            className="relative transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-20"
-            style={{
-              opacity: isHovered ? 1 : 0,
-              transform: isHovered ? 'translateX(0px) scale(1)' : 'translateX(25px) scale(0.4)',
-              pointerEvents: isHovered || chatOpen ? 'auto' : 'none',
-            }}
-          >
-            <button
-              onClick={() => { setChatOpen(o => !o); setMenuOpen(false) }}
-              className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all shadow-lg cursor-pointer ${
-                chatOpen 
-                  ? 'bg-indigo-500/20 border-indigo-400 text-indigo-400' 
-                  : 'bg-[#1e293b] border-white/10 text-slate-300 hover:border-indigo-400/50 hover:bg-[#1e293b]/80'
-              }`}
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-              </svg>
-            </button>
-          </div>
-
-          {/* DOCK INTERACTIVE GLOWING CORE ANCHOR */}
-          <div className="w-14 h-14 flex items-center justify-center shrink-0 relative z-10">
-            <div className={`absolute inset-0 rounded-full blur-xl transition-all duration-500 ${isHovered ? 'bg-indigo-500/10 scale-75' : 'bg-indigo-500/40 scale-110 animate-pulse'}`} />
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all duration-500 shadow-xl ${isHovered ? 'bg-slate-900/60 border-white/10 scale-90' : 'bg-gradient-to-br from-indigo-500 via-indigo-600 to-violet-600 border-indigo-400/40 shadow-[0_0_20px_rgba(99,102,241,0.55)] scale-100'}`}>
-              <div className={`rounded-full transition-all duration-500 ${isHovered ? 'w-2 h-2 bg-slate-500' : 'w-3 h-3 bg-white shadow-[0_0_8px_rgba(255,255,255,0.8)]'}`} />
+      <main id="top">
+        <section className="hero section-pad" aria-labelledby="hero-title">
+          <div className="hero-copy">
+            <p className="eyebrow">Developer. Organizer. Professional tab hoarder.</p>
+            <h1 id="hero-title">
+              Hannah
+              <span>Sheen</span>
+            </h1>
+            <p className="hero-role">IT Executive Assistant + full-stack developer</p>
+            <p className="hero-intro">
+              I turn busy ideas into useful digital experiences, tidy systems, and occasionally
+              very specific cat memes.
+            </p>
+            <div className="hero-actions">
+              <a className="button button-primary" href="#projects">
+                See my work
+              </a>
+              <a className="button button-secondary" href={resume} target="_blank" rel="noreferrer">
+                Open resume
+              </a>
             </div>
           </div>
 
-          {/* NAVIGATION MENU BUTTON LAYER */}
-          <div
-            className="relative transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] z-20"
-            style={{
-              opacity: isHovered ? 1 : 0,
-              transform: isHovered ? 'translateX(0px) scale(1)' : 'translateX(-25px) scale(0.4)',
-              pointerEvents: isHovered || menuOpen ? 'auto' : 'none',
-            }}
-          >
-            <div
-              className="absolute bottom-full left-1/2 -translate-x-1/2 mb-5 flex flex-col items-center gap-2"
-              style={{
-                opacity: menuOpen ? 1 : 0,
-                transform: menuOpen ? 'translateY(0)' : 'translateY(8px)',
-                pointerEvents: menuOpen ? 'auto' : 'none',
-                transition: 'opacity 0.3s ease, transform 0.3s cubic-bezier(0.22,1,0.36,1)',
-              }}
-            >
-              {navLinks.map(link => (
-                <button
-                  key={link.label}
-                  onClick={() => handleNavClick(link.target)}
-                  className="px-5 py-2 rounded-xl text-sm font-medium text-white bg-white/10 backdrop-blur-md border border-white/15 hover:bg-indigo-500/30 hover:border-indigo-400/40 transition-all shadow-lg w-32 text-center cursor-pointer"
-                >
-                  {link.label}
-                </button>
-              ))}
-            </div>
-
+          <div className="hero-collage" aria-label="Portrait and cat photo collage">
+            <figure className="photo-card portrait-card">
+              <img src={portrait} alt="Hannah Sheen" />
+              <figcaption>me, probably planning something</figcaption>
+            </figure>
             <button
-              onClick={() => { setMenuOpen(o => !o); setChatOpen(false) }}
-              className="w-12 h-12 rounded-2xl flex items-center justify-center bg-indigo-600 hover:bg-indigo-500 transition-all shadow-lg border border-indigo-500/50 cursor-pointer"
+              className="photo-card cat-card cat-card-one"
+              type="button"
+              onClick={() => setCatNote((note) => (note + 1) % catNotes.length)}
             >
-              <svg
-                className="w-5 h-5 text-white transition-transform duration-300"
-                style={{ transform: menuOpen ? 'rotate(45deg)' : 'rotate(0deg)' }}
-                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
-              >
-                {menuOpen
-                  ? <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  : <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                }
-              </svg>
+              <img src={catLaptop} alt="A cat reacting dramatically near a laptop" />
+              <span>{catNotes[catNote]}</span>
             </button>
+            <figure className="photo-card cat-card cat-card-two">
+              <img src={catCouch} alt="A cat sitting beside a laptop" />
+              <figcaption>my senior code reviewer</figcaption>
+            </figure>
           </div>
+        </section>
 
+        <section className="about section-pad" id="about" aria-labelledby="about-title">
+          <div className="section-kicker">01 / about me</div>
+          <div className="about-grid">
+            <article className="paper paper-lavender">
+              <h2 id="about-title">I like making complicated things feel simple.</h2>
+              <p>
+                I am a Cebu-based developer who enjoys building useful systems, learning fast,
+                and helping teams keep technical work human. My sweet spot sits between code,
+                coordination, and thoughtful user experience.
+              </p>
+              <p className="scribble">The goal: useful, clear, and never boring.</p>
+            </article>
+            <article className="paper paper-yellow current-note">
+              <p className="tape-label">currently doing</p>
+              <h3>IT Executive Assistant</h3>
+              <p className="company-name">Lifewood Data Technology</p>
+              <p>
+                Keeping operations organized, assisting technical priorities, and helping work
+                move from “we should” to “done.”
+              </p>
+            </article>
+            <figure className="photo-card sleepy-card">
+              <img src={catSleepy} alt="A fluffy cat sleeping on a blanket" />
+              <figcaption>after resolving one merge conflict</figcaption>
+            </figure>
+          </div>
+        </section>
+
+        <section className="experience section-pad" id="experience" aria-labelledby="experience-title">
+          <div className="section-heading">
+            <div>
+              <p className="section-kicker">02 / work log</p>
+              <h2 id="experience-title">Places I have been useful</h2>
+            </div>
+            <p className="margin-note">A timeline, but with more personality.</p>
+          </div>
+          <div className="experience-list">
+            {experiences.map((item) => (
+              <article className={item.current ? 'experience-item current' : 'experience-item'} key={`${item.role}-${item.company}`}>
+                <p className="experience-period">{item.period}</p>
+                <div>
+                  <h3>{item.role}</h3>
+                  <p className="company-name">{item.company}</p>
+                </div>
+                <p>{item.description}</p>
+                {item.current && <span className="current-stamp">now</span>}
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="projects section-pad" id="projects" aria-labelledby="projects-title">
+          <div className="section-heading">
+            <div>
+              <p className="section-kicker">03 / selected work</p>
+              <h2 id="projects-title">Things I made instead of sleeping</h2>
+            </div>
+            <p className="margin-note">Click a project for the short version.</p>
+          </div>
+          <div className="project-grid">
+            {projects.map((project) => (
+              <button className="project-card" type="button" key={project.title} onClick={() => setActiveProject(project)}>
+                <span className="project-number">{project.number}</span>
+                <img src={project.image} alt="" />
+                <div className="project-copy">
+                  <p>{project.client}</p>
+                  <h3>{project.title}</h3>
+                  <span>View notes</span>
+                </div>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="skills section-pad" id="skills" aria-labelledby="skills-title">
+          <p className="section-kicker">04 / toolkit</p>
+          <h2 id="skills-title">Things currently living in my brain</h2>
+          <div className="skill-grid">
+            {skillGroups.map((group, index) => (
+              <article className={`skill-note note-${index + 1}`} key={group.title}>
+                <p>{group.title}</p>
+                <ul>
+                  {group.items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="contact section-pad" id="contact" aria-labelledby="contact-title">
+          <div className="contact-intro">
+            <p className="section-kicker">05 / say hello</p>
+            <h2 id="contact-title">Have a good idea? Send it my way.</h2>
+            <p>
+              I am open to thoughtful collaborations, tech conversations, and excellent cat
+              photos.
+            </p>
+            <div className="contact-links">
+              <a href="mailto:hannahsheen12@gmail.com">Email</a>
+              <a href="https://github.com/haruunaX" target="_blank" rel="noreferrer">GitHub</a>
+              <a href="https://www.linkedin.com/in/hannah-sheen-obejero-8a44b63a4" target="_blank" rel="noreferrer">LinkedIn</a>
+            </div>
+          </div>
+          <form className="contact-form" onSubmit={handleSubmit}>
+            <label>
+              Your name
+              <input name="name" type="text" autoComplete="name" required />
+            </label>
+            <label>
+              Your email
+              <input name="email" type="email" autoComplete="email" required />
+            </label>
+            <label>
+              What is up?
+              <textarea name="message" rows={5} required />
+            </label>
+            <button className="button button-primary" type="submit">Send message</button>
+            <p className="form-status" aria-live="polite">{formStatus}</p>
+          </form>
+        </section>
+      </main>
+
+      <footer>
+        <p>Built by Hannah, supervised by cats.</p>
+        <a href="#top">Back to top</a>
+      </footer>
+
+      {activeProject && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setActiveProject(null)}>
+          <article className="project-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" type="button" onClick={() => setActiveProject(null)}>close</button>
+            <img src={activeProject.image} alt={`${activeProject.title} preview`} />
+            <p className="section-kicker">project {activeProject.number}</p>
+            <h2 id="modal-title">{activeProject.title}</h2>
+            <p className="company-name">{activeProject.client}</p>
+            <p>{activeProject.description}</p>
+            <ul className="tag-list">
+              {activeProject.stack.map((item) => <li key={item}>{item}</li>)}
+            </ul>
+            <a className="button button-primary" href={activeProject.link} target="_blank" rel="noreferrer">View on GitHub</a>
+          </article>
         </div>
-      </div>
-
-      {/* MOBILE FLOATING ACTION CHAT FAB */}
-      <button
-        onClick={() => setChatOpen(o => !o)}
-        className={`fixed bottom-6 right-6 z-50 w-14 h-14 rounded-2xl flex items-center justify-center border transition-all shadow-xl cursor-pointer md:hidden ${
-          chatOpen 
-            ? 'bg-indigo-500/20 border-indigo-400 text-indigo-400 backdrop-blur-md' 
-            : 'bg-indigo-600 border-indigo-500/50 text-white hover:bg-indigo-500'
-        }`}
-      >
-        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-          {chatOpen ? (
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          ) : (
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-          )}
-        </svg>
-      </button>
-
+      )}
     </div>
   )
 }
+
+export default App
