@@ -5,6 +5,10 @@ import resume from './assets/resume/Hannah-Sheen-Resume.pdf'
 import catLaptop from './assets/cats/cat-laptop.jpg'
 import catCouch from './assets/cats/cat-couch-laptop.jpg'
 import catSleepy from './assets/cats/cat-sleepy.jpg'
+import catLaptopSticker from './assets/cats/cat-laptop-sticker.gif'
+import catSocks from './assets/cats/cat-socks.gif'
+import walkingCat from './assets/cats/walking-cat.gif'
+import animatedKitty from './assets/cats/animated-kitty.gif'
 import ciudad from './assets/projects/ciudad.png'
 import archivist from './assets/projects/tas.jpeg'
 import quizOdyssey from './assets/projects/quiz_odessey.png'
@@ -67,16 +71,16 @@ const experiences = [
   },
   {
     period: '2023',
-    role: 'Back End Intern',
+    role: 'Back End Developer Intern',
     company: 'Camtastic Philippines Corp.',
-    description: 'Built backend logic and worked with Pascal and SQL-based systems.',
+    description: 'Worked on backend logic using Pascal and SQL-based systems.',
   },
   {
     period: '2023',
-    role: 'IT Intern',
+    role: 'Full Stack Developer Intern',
     company: 'Lifewood Data Technology PH',
     description:
-      'Explored enterprise workflows, prompt engineering, efficient coding, and modern AI tools.',
+      'Worked across enterprise workflows, prompt engineering, efficient coding, and modern AI-assisted tools.',
   },
 ]
 
@@ -193,9 +197,11 @@ const catNotes = [
 
 function CertificateCard({
   certificate,
+  index,
   onOpen,
 }: {
   certificate: Certificate
+  index: number
   onOpen: () => void
 }) {
   const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
@@ -221,6 +227,7 @@ function CertificateCard({
       onPointerMove={handlePointerMove}
       onPointerLeave={resetTilt}
     >
+      <span className="certificate-number">proof #{String(index + 1).padStart(2, '0')}</span>
       <span className="certificate-frame">
         <img src={certificate.image} alt={`${certificate.title} certificate`} />
       </span>
@@ -252,6 +259,50 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
 
+  useEffect(() => {
+    const revealItems = document.querySelectorAll<HTMLElement>('[data-reveal]')
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible')
+            observer.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+    )
+
+    revealItems.forEach((item) => observer.observe(item))
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
+    let frame = 0
+
+    const updateScrollEffects = () => {
+      const scrollRange = document.documentElement.scrollHeight - window.innerHeight
+      const progress = scrollRange > 0 ? window.scrollY / scrollRange : 0
+      document.documentElement.style.setProperty('--scroll-progress', progress.toString())
+      document.documentElement.style.setProperty('--parallax-offset', `${window.scrollY * -0.014}px`)
+      frame = 0
+    }
+
+    const handleScroll = () => {
+      if (!frame) frame = window.requestAnimationFrame(updateScrollEffects)
+    }
+
+    updateScrollEffects()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+      if (frame) window.cancelAnimationFrame(frame)
+    }
+  }, [])
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setFormStatus('Sending...')
@@ -275,6 +326,7 @@ function App() {
 
   return (
     <div className="site-shell">
+      <div className="scroll-progress" aria-hidden="true"><span /></div>
       <header className="site-header">
         <a className="brand" href="#top" aria-label="Hannah Sheen home">
           HS<span>.</span>
@@ -299,7 +351,7 @@ function App() {
 
       <main id="top">
         <section className="hero section-pad" aria-labelledby="hero-title">
-          <div className="hero-copy">
+          <div className="hero-copy" data-reveal>
             <p className="eyebrow">Developer. Organizer. Professional tab hoarder.</p>
             <h1 id="hero-title">
               Hannah
@@ -320,7 +372,7 @@ function App() {
             </div>
           </div>
 
-          <div className="hero-collage" aria-label="Portrait and cat photo collage">
+          <div className="hero-collage" aria-label="Portrait and cat photo collage" data-reveal>
             <figure className="photo-card portrait-card">
               <img src={portrait} alt="Hannah Sheen" />
               <figcaption>me, probably planning something</figcaption>
@@ -341,8 +393,8 @@ function App() {
         </section>
 
         <section className="about section-pad" id="about" aria-labelledby="about-title">
-          <div className="section-kicker">01 / about me</div>
-          <div className="about-grid">
+          <div className="section-kicker" data-reveal>01 / about me</div>
+          <div className="about-grid" data-reveal>
             <article className="paper paper-lavender">
               <h2 id="about-title">I like making complicated things feel simple.</h2>
               <p>
@@ -369,7 +421,7 @@ function App() {
         </section>
 
         <section className="experience section-pad" id="experience" aria-labelledby="experience-title">
-          <div className="section-heading">
+          <div className="section-heading" data-reveal>
             <div>
               <p className="section-kicker">02 / work log</p>
               <h2 id="experience-title">Places I have been useful</h2>
@@ -378,7 +430,7 @@ function App() {
           </div>
           <div className="experience-list">
             {experiences.map((item) => (
-              <article className={item.current ? 'experience-item current' : 'experience-item'} key={`${item.role}-${item.company}`}>
+              <article className={item.current ? 'experience-item current' : 'experience-item'} key={`${item.role}-${item.company}`} data-reveal>
                 <p className="experience-period">{item.period}</p>
                 <div>
                   <h3>{item.role}</h3>
@@ -391,8 +443,23 @@ function App() {
           </div>
         </section>
 
+        <aside className="meme-break meme-break-laptop" data-reveal aria-label="Cat coding intermission">
+          <img src={catLaptopSticker} alt="Animated cat typing on a laptop" />
+          <div>
+            <p className="section-kicker">intermission / live debugging footage</p>
+            <h2>Open tab. Fix bug. Create three new bugs.</h2>
+          </div>
+        </aside>
+
+        <div className="motion-ticker" aria-hidden="true">
+          <div className="motion-ticker-track">
+            <span>build it clean</span><span>ship it kindly</span><span>ask the cat reviewer</span>
+            <span>build it clean</span><span>ship it kindly</span><span>ask the cat reviewer</span>
+          </div>
+        </div>
+
         <section className="projects section-pad" id="projects" aria-labelledby="projects-title">
-          <div className="section-heading">
+          <div className="section-heading" data-reveal>
             <div>
               <p className="section-kicker">03 / selected work</p>
               <h2 id="projects-title">Things I made instead of sleeping</h2>
@@ -401,7 +468,7 @@ function App() {
           </div>
           <div className="project-grid">
             {projects.map((project) => (
-              <button className="project-card" type="button" key={project.title} onClick={() => setActiveProject(project)}>
+              <button className="project-card" type="button" key={project.title} onClick={() => setActiveProject(project)} data-reveal>
                 <span className="project-number">{project.number}</span>
                 <img src={project.image} alt="" />
                 <div className="project-copy">
@@ -415,11 +482,11 @@ function App() {
         </section>
 
         <section className="skills section-pad" id="skills" aria-labelledby="skills-title">
-          <p className="section-kicker">04 / toolkit</p>
-          <h2 id="skills-title">Things currently living in my brain</h2>
+          <p className="section-kicker" data-reveal>04 / toolkit</p>
+          <h2 id="skills-title" data-reveal>Things currently living in my brain</h2>
           <div className="skill-grid">
             {skillGroups.map((group, index) => (
-              <article className={`skill-note note-${index + 1}`} key={group.title}>
+              <article className={`skill-note note-${index + 1}`} key={group.title} data-reveal>
                 <p>{group.title}</p>
                 <ul>
                   {group.items.map((item) => <li key={item}>{item}</li>)}
@@ -430,39 +497,60 @@ function App() {
         </section>
 
         <section className="certificates section-pad" id="certificates" aria-labelledby="certificates-title">
-          <div className="section-heading">
+          <div className="section-heading" data-reveal>
             <div>
               <p className="section-kicker">05 / proof I did the homework</p>
-              <h2 id="certificates-title">Certificates, now with actual depth</h2>
+              <h2 id="certificates-title">My cat-approved learning trail</h2>
             </div>
-            <p className="margin-note">Move your cursor across a card. Click to inspect.</p>
+            <p className="margin-note">A crooked little timeline of things I learned. Click to inspect.</p>
           </div>
-          <div className="certificate-stage">
-            {certificates.map((certificate) => (
-              <CertificateCard
-                certificate={certificate}
-                key={certificate.title}
-                onOpen={() => setActiveCertificate(certificate)}
-              />
-            ))}
+          <div className="certificate-trail">
+            <div className="certificate-cat-track" aria-hidden="true">
+              <img src={walkingCat} alt="" />
+              <span>achievement patrol in progress</span>
+            </div>
+            <div className="certificate-stage">
+              {certificates.map((certificate, index) => (
+                <div className="certificate-plot" data-reveal key={certificate.title}>
+                  <span className="certificate-node" aria-hidden="true" />
+                  <CertificateCard
+                    certificate={certificate}
+                    index={index}
+                    onOpen={() => setActiveCertificate(certificate)}
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
+        <aside className="meme-break meme-break-socks" data-reveal aria-label="Cat approval intermission">
+          <div>
+            <p className="section-kicker">quality assurance / passed</p>
+            <h2>The tiny cat has reviewed the pull request.</h2>
+          </div>
+          <img src={catSocks} alt="Animated black and white cat" />
+        </aside>
+
         <section className="contact section-pad" id="contact" aria-labelledby="contact-title">
-          <div className="contact-intro">
+          <div className="contact-intro" data-reveal>
             <p className="section-kicker">06 / say hello</p>
             <h2 id="contact-title">Have a good idea? Send it my way.</h2>
             <p>
               I am open to thoughtful collaborations, tech conversations, and excellent cat
               photos.
             </p>
+            <div className="contact-cat-sticker">
+              <img src={animatedKitty} alt="Animated black and white cat looking at the camera" />
+              <span>Inbox supervisor. Very judgmental.</span>
+            </div>
             <div className="contact-links">
               <a href="mailto:hannahsheen12@gmail.com">Email</a>
               <a href="https://github.com/haruunaX" target="_blank" rel="noreferrer">GitHub</a>
               <a href="https://www.linkedin.com/in/hannah-sheen-obejero-8a44b63a4" target="_blank" rel="noreferrer">LinkedIn</a>
             </div>
           </div>
-          <form className="contact-form" onSubmit={handleSubmit}>
+          <form className="contact-form" onSubmit={handleSubmit} data-reveal>
             <label>
               Your name
               <input name="name" type="text" autoComplete="name" required />
@@ -483,6 +571,9 @@ function App() {
 
       <footer>
         <p>Built by Hannah, supervised by cats.</p>
+        <small>
+          Animated cats from <a href="https://commons.wikimedia.org/wiki/File:Wikipedia_iOS_Sticker_-_CatLaptop_2.gif" target="_blank" rel="noreferrer">Wikimedia Foundation</a>, <a href="https://commons.wikimedia.org/wiki/File:Funsocks.gif" target="_blank" rel="noreferrer">the White House archive</a>, <a href="https://commons.wikimedia.org/wiki/File:Walking_cat.gif" target="_blank" rel="noreferrer">Sheilagraber</a>, and <a href="https://commons.wikimedia.org/wiki/File:Animatedkitty.gif" target="_blank" rel="noreferrer">Miranda</a>. The last two are <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noreferrer">CC BY-SA 3.0</a> and used unmodified.
+        </small>
         <a href="#top">Back to top</a>
       </footer>
 
