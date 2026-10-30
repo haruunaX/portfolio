@@ -6,9 +6,12 @@ import catLaptop from './assets/cats/cat-laptop.jpg'
 import catCouch from './assets/cats/cat-couch-laptop.jpg'
 import catSleepy from './assets/cats/cat-sleepy.jpg'
 import catLaptopSticker from './assets/cats/cat-laptop-sticker.gif'
-import catSocks from './assets/cats/cat-socks.gif'
-import walkingCat from './assets/cats/walking-cat.gif'
-import animatedKitty from './assets/cats/animated-kitty.gif'
+import catTypingMeme from './assets/cats/cat-typing-tenor.gif'
+import agingBlueCat from './assets/cats/aging-blue-cat.gif'
+import judgementalCat from './assets/cats/judgemental-cat-tenor.gif'
+import oiiaCat from './assets/cats/oiia-cat.gif'
+import bananaCryCat from './assets/cats/banana-cry-cat.gif'
+import huhCat from './assets/cats/huh-cat.gif'
 import ciudad from './assets/projects/ciudad.png'
 import archivist from './assets/projects/tas.jpeg'
 import quizOdyssey from './assets/projects/quiz_odessey.png'
@@ -193,6 +196,27 @@ const catNotes = [
   'Debugging posture: suspiciously hunched.',
   'Current status: one tab away from greatness.',
   'The code works. Nobody touch anything.',
+]
+
+const brainrotCats = [
+  {
+    image: oiiaCat,
+    alt: 'A cat spinning rapidly against a bright green background',
+    title: 'OIIA mode',
+    note: 'when the deploy actually works',
+  },
+  {
+    image: bananaCryCat,
+    alt: 'A tiny cat in a banana costume crying dramatically',
+    title: 'banana incident',
+    note: 'one harmless console error',
+  },
+  {
+    image: huhCat,
+    alt: 'A wide-eyed cat looking into the camera with the words you ok my g',
+    title: 'code review',
+    note: 'the function has 14 parameters',
+  },
 ]
 
 function CertificateCard({
@@ -481,6 +505,27 @@ function App() {
           </div>
         </section>
 
+        <aside className="brainrot-strip" aria-labelledby="brainrot-title" data-reveal>
+          <div className="brainrot-heading">
+            <div>
+              <p className="section-kicker">live reaction feed</p>
+              <h2 id="brainrot-title">Current brain activity</h2>
+            </div>
+            <p>Three cats. Zero useful thoughts.</p>
+          </div>
+          <div className="brainrot-grid">
+            {brainrotCats.map((cat) => (
+              <figure className="brainrot-card" key={cat.title}>
+                <img src={cat.image} alt={cat.alt} />
+                <figcaption>
+                  <strong>{cat.title}</strong>
+                  <span>{cat.note}</span>
+                </figcaption>
+              </figure>
+            ))}
+          </div>
+        </aside>
+
         <section className="skills section-pad" id="skills" aria-labelledby="skills-title">
           <p className="section-kicker" data-reveal>04 / toolkit</p>
           <h2 id="skills-title" data-reveal>Things currently living in my brain</h2>
@@ -506,8 +551,8 @@ function App() {
           </div>
           <div className="certificate-trail">
             <div className="certificate-cat-track" aria-hidden="true">
-              <img src={walkingCat} alt="" />
-              <span>achievement patrol in progress</span>
+              <img src={catTypingMeme} alt="" />
+              <span>me collecting one more certificate instead of closing tabs</span>
             </div>
             <div className="certificate-stage">
               {certificates.map((certificate, index) => (
@@ -524,12 +569,12 @@ function App() {
           </div>
         </section>
 
-        <aside className="meme-break meme-break-socks" data-reveal aria-label="Cat approval intermission">
+        <aside className="meme-break meme-break-reaction" data-reveal aria-label="Cat approval intermission">
           <div>
             <p className="section-kicker">quality assurance / passed</p>
             <h2>The tiny cat has reviewed the pull request.</h2>
           </div>
-          <img src={catSocks} alt="Animated black and white cat" />
+          <img src={agingBlueCat} alt="Animated blue cat typing at a laptop" />
         </aside>
 
         <section className="contact section-pad" id="contact" aria-labelledby="contact-title">
@@ -541,7 +586,7 @@ function App() {
               photos.
             </p>
             <div className="contact-cat-sticker">
-              <img src={animatedKitty} alt="Animated black and white cat looking at the camera" />
+              <img src={judgementalCat} alt="Animated orange cat giving a judgmental look" />
               <span>Inbox supervisor. Very judgmental.</span>
             </div>
             <div className="contact-links">
@@ -572,7 +617,7 @@ function App() {
       <footer>
         <p>Built by Hannah, supervised by cats.</p>
         <small>
-          Animated cats from <a href="https://commons.wikimedia.org/wiki/File:Wikipedia_iOS_Sticker_-_CatLaptop_2.gif" target="_blank" rel="noreferrer">Wikimedia Foundation</a>, <a href="https://commons.wikimedia.org/wiki/File:Funsocks.gif" target="_blank" rel="noreferrer">the White House archive</a>, <a href="https://commons.wikimedia.org/wiki/File:Walking_cat.gif" target="_blank" rel="noreferrer">Sheilagraber</a>, and <a href="https://commons.wikimedia.org/wiki/File:Animatedkitty.gif" target="_blank" rel="noreferrer">Miranda</a>. The last two are <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noreferrer">CC BY-SA 3.0</a> and used unmodified.
+          Animated cats from <a href="https://commons.wikimedia.org/wiki/File:Wikipedia_iOS_Sticker_-_CatLaptop_2.gif" target="_blank" rel="noreferrer">Wikimedia Foundation</a>, <a href="https://tenor.com/view/cat-typing-typing-on-computer-computer-work-laptop-gif-3735158436717612412" target="_blank" rel="noreferrer">Tikvah4u2</a>, <a href="https://giphy.com/gifs/typing-work-stress-corporate-slave-QUGNjCVa2XFVlmZBYR" target="_blank" rel="noreferrer">Nope Cat</a>, <a href="https://tenor.com/view/judgemental-cat-judging-cat-funny-cat-cat-judging-cat-meme-gif-12106025989505123170" target="_blank" rel="noreferrer">m_toro</a>, <a href="https://tenor.com/view/cat-spin-oiia-spinning-cat-oiia-very-fast-spin-oiia-fast-spinning-cat-gif-11002452809956994839" target="_blank" rel="noreferrer">oiiaoiiaSpinningCAT</a>, <a href="https://tenor.com/view/banana-banana-cat-cat-sad-crying-gif-14374695503752541462" target="_blank" rel="noreferrer">wmma</a>, and <a href="https://tenor.com/view/huh-cat-meme-what-ya-doing-huh-cat-in-camera-cat-stare-gif-14539023150639272424" target="_blank" rel="noreferrer">meoshavsmeosha</a> via Tenor and GIPHY.
         </small>
         <a href="#top">Back to top</a>
       </footer>
