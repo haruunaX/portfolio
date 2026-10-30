@@ -157,6 +157,7 @@ img {
 .section-heading h2,
 .about h2,
 .skills h2,
+.certificates h2,
 .contact h2,
 .project-modal h2 {
   margin: 0;
@@ -189,6 +190,7 @@ img {
   background: var(--yellow);
   box-shadow: 3px 3px 0 var(--ink);
   transform: rotate(1deg);
+  animation: label-wiggle 5s ease-in-out infinite;
 }
 
 .hero-intro {
@@ -275,6 +277,7 @@ img {
   width: min(72%, 390px);
   height: 490px;
   transform: rotate(3deg);
+  animation: portrait-float 7s ease-in-out infinite;
 }
 
 .cat-card {
@@ -296,12 +299,14 @@ button.cat-card {
   left: 0;
   z-index: 2;
   transform: rotate(-6deg);
+  animation: cat-float-left 6s ease-in-out infinite;
 }
 
 .cat-card-two {
   right: 0;
   bottom: -1.5rem;
   transform: rotate(5deg);
+  animation: cat-float-right 6.5s ease-in-out infinite 0.4s;
 }
 
 .about {
@@ -398,6 +403,7 @@ button.cat-card {
 
 .section-heading h2,
 .skills h2,
+.certificates h2,
 .contact h2 {
   max-width: 850px;
   font-size: clamp(2.8rem, 6vw, 6rem);
@@ -632,6 +638,108 @@ button.cat-card {
   font-weight: 700;
 }
 
+.certificates {
+  max-width: none;
+  padding-right: max(2rem, calc((100vw - 1180px) / 2));
+  padding-left: max(2rem, calc((100vw - 1180px) / 2));
+  border-top: var(--line);
+  background: var(--yellow);
+}
+
+.certificate-stage {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2.2rem;
+  padding: 1.5rem 0;
+  perspective: 1500px;
+}
+
+.certificate-card {
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --card-rotate: -1deg;
+  --lift: 0px;
+  position: relative;
+  display: grid;
+  gap: 1rem;
+  min-height: 360px;
+  padding: 0.85rem;
+  border: var(--line);
+  border-radius: 0;
+  color: var(--ink);
+  text-align: left;
+  background: var(--paper-light);
+  box-shadow: 9px 10px 0 var(--ink);
+  cursor: pointer;
+  transform: translateY(var(--lift)) rotateX(var(--rotate-x)) rotateY(var(--rotate-y)) rotateZ(var(--card-rotate));
+  transform-style: preserve-3d;
+  transform-origin: center;
+  transition: transform 120ms ease-out, box-shadow 180ms ease;
+  will-change: transform;
+}
+
+.certificate-card:nth-child(2n) {
+  --card-rotate: 1.2deg;
+}
+
+.certificate-card:nth-child(3n) {
+  --card-rotate: -0.4deg;
+}
+
+.certificate-card:hover,
+.certificate-card:focus-visible {
+  --lift: -10px;
+  z-index: 2;
+  box-shadow: 13px 16px 0 var(--red);
+  outline: 0;
+}
+
+.certificate-frame {
+  display: grid;
+  min-height: 240px;
+  padding: 0.6rem;
+  place-items: center;
+  border: 1.5px solid var(--ink);
+  background: #ffffff;
+  transform: translateZ(24px);
+}
+
+.certificate-frame img {
+  width: 100%;
+  height: 230px;
+  object-fit: contain;
+}
+
+.certificate-meta {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.4rem 0.35rem 0.25rem;
+  transform: translateZ(42px);
+}
+
+.certificate-meta strong {
+  font-family: 'Bowlby One SC', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 400;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.certificate-meta small {
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.certificate-meta > span {
+  margin-top: 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: underline;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  text-underline-offset: 0.25rem;
+}
+
 .contact {
   display: grid;
   grid-template-columns: 0.9fr 1.1fr;
@@ -781,6 +889,76 @@ footer a {
   cursor: pointer;
 }
 
+.certificate-modal {
+  position: relative;
+  width: min(980px, 100%);
+  max-height: calc(100vh - 3rem);
+  padding: 1rem 1rem 2rem;
+  overflow-y: auto;
+  border: var(--line);
+  background: var(--paper-light);
+  box-shadow: 10px 10px 0 var(--yellow);
+}
+
+.certificate-modal > img {
+  width: 100%;
+  max-height: 68vh;
+  margin-bottom: 2rem;
+  object-fit: contain;
+  border: 1px solid var(--ink);
+  background: #ffffff;
+}
+
+.certificate-modal h2 {
+  max-width: 760px;
+  margin: 0;
+  font-family: 'Bowlby One SC', sans-serif;
+  font-size: clamp(2rem, 5vw, 4.2rem);
+  font-weight: 400;
+  line-height: 0.95;
+  text-transform: uppercase;
+}
+
+@keyframes portrait-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(3deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1.8deg);
+  }
+}
+
+@keyframes cat-float-left {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-6deg);
+  }
+  50% {
+    transform: translateY(10px) rotate(-3.5deg);
+  }
+}
+
+@keyframes cat-float-right {
+  0%,
+  100% {
+    transform: translateY(0) rotate(5deg);
+  }
+  50% {
+    transform: translateY(-9px) rotate(7deg);
+  }
+}
+
+@keyframes label-wiggle {
+  0%,
+  100% {
+    transform: rotate(1deg);
+  }
+  50% {
+    transform: rotate(-0.8deg) translateY(-2px);
+  }
+}
+
 @media (max-width: 980px) {
   .hero {
     grid-template-columns: 1fr;
@@ -817,6 +995,10 @@ footer a {
   .contact {
     grid-template-columns: 1fr;
     gap: 3rem;
+  }
+
+  .certificate-stage {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
@@ -887,6 +1069,7 @@ footer a {
 
   .about,
   .projects,
+  .certificates,
   .contact {
     padding-right: 1.2rem;
     padding-left: 1.2rem;
@@ -937,6 +1120,21 @@ footer a {
     min-height: auto;
   }
 
+  .certificate-stage {
+    display: flex;
+    gap: 1.3rem;
+    padding: 1.5rem 0 2rem;
+    overflow-x: auto;
+    perspective: none;
+    scroll-snap-type: x mandatory;
+  }
+
+  .certificate-card {
+    flex: 0 0 min(84vw, 360px);
+    min-height: 340px;
+    scroll-snap-align: center;
+  }
+
   footer {
     gap: 1rem;
     align-items: flex-start;
@@ -951,6 +1149,11 @@ footer a {
   *,
   *::before,
   *::after {
+    animation: none !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .certificate-card {
+    transform: rotateZ(var(--card-rotate));
   }
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, PointerEvent } from 'react'
 import portrait from './assets/images/for_lanyard.jpg'
 import resume from './assets/resume/Hannah-Sheen-Resume.pdf'
 import catLaptop from './assets/cats/cat-laptop.jpg'
@@ -10,6 +10,12 @@ import archivist from './assets/projects/tas.jpeg'
 import quizOdyssey from './assets/projects/quiz_odessey.png'
 import lifewoodWebsite from './assets/projects/lifewood-website.png'
 import pfcSystem from './assets/projects/PFCSystem.png'
+import aseanAi from './assets/certifications/ASEAN AI MAPUA Workshop.png'
+import pythonCourse from './assets/certifications/Crash Course on Python.jpeg'
+import uxDesign from './assets/certifications/Foundations of UX Design.jpeg'
+import githubVersionControl from './assets/certifications/Github_Version_Control.png'
+import nasaCertificate from './assets/certifications/NASA Certificate.jpg'
+import networkingBasics from './assets/certifications/Networking_Basics.png'
 
 type Project = {
   number: string
@@ -21,7 +27,13 @@ type Project = {
   link: string
 }
 
-const navigation = ['about', 'experience', 'projects', 'skills', 'contact']
+type Certificate = {
+  title: string
+  issuer: string
+  image: string
+}
+
+const navigation = ['about', 'experience', 'projects', 'skills', 'certificates', 'contact']
 
 const experiences = [
   {
@@ -140,21 +152,100 @@ const skillGroups = [
   },
 ]
 
+const certificates: Certificate[] = [
+  {
+    title: 'ASEAN AI Workshop',
+    issuer: 'MAPÚA University',
+    image: aseanAi,
+  },
+  {
+    title: 'Foundations of UX Design',
+    issuer: 'Google',
+    image: uxDesign,
+  },
+  {
+    title: 'GitHub Version Control',
+    issuer: 'GitHub',
+    image: githubVersionControl,
+  },
+  {
+    title: 'NASA Space Apps Challenge',
+    issuer: 'NASA Space Apps',
+    image: nasaCertificate,
+  },
+  {
+    title: 'Crash Course on Python',
+    issuer: 'Google',
+    image: pythonCourse,
+  },
+  {
+    title: 'Networking Basics',
+    issuer: 'Cisco Networking Academy',
+    image: networkingBasics,
+  },
+]
+
 const catNotes = [
   'Debugging posture: suspiciously hunched.',
   'Current status: one tab away from greatness.',
   'The code works. Nobody touch anything.',
 ]
 
+function CertificateCard({
+  certificate,
+  onOpen,
+}: {
+  certificate: Certificate
+  onOpen: () => void
+}) {
+  const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+    const card = event.currentTarget
+    const bounds = card.getBoundingClientRect()
+    const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5
+    const vertical = (event.clientY - bounds.top) / bounds.height - 0.5
+
+    card.style.setProperty('--rotate-x', `${vertical * -13}deg`)
+    card.style.setProperty('--rotate-y', `${horizontal * 15}deg`)
+  }
+
+  const resetTilt = (event: PointerEvent<HTMLButtonElement>) => {
+    event.currentTarget.style.setProperty('--rotate-x', '0deg')
+    event.currentTarget.style.setProperty('--rotate-y', '0deg')
+  }
+
+  return (
+    <button
+      className="certificate-card"
+      type="button"
+      onClick={onOpen}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetTilt}
+    >
+      <span className="certificate-frame">
+        <img src={certificate.image} alt={`${certificate.title} certificate`} />
+      </span>
+      <span className="certificate-meta">
+        <strong>{certificate.title}</strong>
+        <small>{certificate.issuer}</small>
+        <span>Open certificate</span>
+      </span>
+    </button>
+  )
+}
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeProject, setActiveProject] = useState<Project | null>(null)
+  const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null)
   const [catNote, setCatNote] = useState(0)
   const [formStatus, setFormStatus] = useState('')
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') setActiveProject(null)
+      if (event.key === 'Escape') {
+        setActiveProject(null)
+        setActiveCertificate(null)
+      }
     }
 
     window.addEventListener('keydown', handleKeyDown)
@@ -338,9 +429,28 @@ function App() {
           </div>
         </section>
 
+        <section className="certificates section-pad" id="certificates" aria-labelledby="certificates-title">
+          <div className="section-heading">
+            <div>
+              <p className="section-kicker">05 / proof I did the homework</p>
+              <h2 id="certificates-title">Certificates, now with actual depth</h2>
+            </div>
+            <p className="margin-note">Move your cursor across a card. Click to inspect.</p>
+          </div>
+          <div className="certificate-stage">
+            {certificates.map((certificate) => (
+              <CertificateCard
+                certificate={certificate}
+                key={certificate.title}
+                onOpen={() => setActiveCertificate(certificate)}
+              />
+            ))}
+          </div>
+        </section>
+
         <section className="contact section-pad" id="contact" aria-labelledby="contact-title">
           <div className="contact-intro">
-            <p className="section-kicker">05 / say hello</p>
+            <p className="section-kicker">06 / say hello</p>
             <h2 id="contact-title">Have a good idea? Send it my way.</h2>
             <p>
               I am open to thoughtful collaborations, tech conversations, and excellent cat
@@ -389,6 +499,18 @@ function App() {
               {activeProject.stack.map((item) => <li key={item}>{item}</li>)}
             </ul>
             <a className="button button-primary" href={activeProject.link} target="_blank" rel="noreferrer">View on GitHub</a>
+          </article>
+        </div>
+      )}
+
+      {activeCertificate && (
+        <div className="modal-backdrop" role="presentation" onMouseDown={() => setActiveCertificate(null)}>
+          <article className="certificate-modal" role="dialog" aria-modal="true" aria-labelledby="certificate-modal-title" onMouseDown={(event) => event.stopPropagation()}>
+            <button className="modal-close" type="button" onClick={() => setActiveCertificate(null)}>close</button>
+            <img src={activeCertificate.image} alt={`${activeCertificate.title} certificate`} />
+            <p className="section-kicker">verified learning</p>
+            <h2 id="certificate-modal-title">{activeCertificate.title}</h2>
+            <p className="company-name">{activeCertificate.issuer}</p>
           </article>
         </div>
       )}
