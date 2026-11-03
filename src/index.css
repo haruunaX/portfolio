@@ -480,8 +480,10 @@ button.cat-card {
   --tilt-y: 0deg;
   position: relative;
   display: grid;
-  grid-template-columns: minmax(210px, 0.36fr) minmax(0, 1fr);
-  gap: clamp(1rem, 3vw, 2.5rem);
+  grid-template-areas:
+    'feature'
+    'rail';
+  gap: clamp(1.5rem, 4vw, 3rem);
   padding: clamp(1rem, 3vw, 2rem);
   overflow: hidden;
   border: var(--line);
@@ -512,13 +514,16 @@ button.cat-card {
   position: relative;
   z-index: 2;
   display: grid;
+  grid-area: rail;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.7rem;
-  align-content: center;
+  padding-top: 1.5rem;
+  border-top: 2px dashed var(--ink);
 }
 
 .experience-tab {
   display: grid;
-  grid-template-columns: 38px minmax(0, 1fr) auto;
+  grid-template-columns: 34px minmax(0, 1fr);
   gap: 0.6rem;
   align-items: center;
   min-width: 0;
@@ -539,7 +544,7 @@ button.cat-card {
   background: var(--yellow);
   box-shadow: 7px 7px 0 var(--red);
   outline: 0;
-  transform: translateX(8px) rotate(-1deg);
+  transform: translateY(-8px) rotate(-1deg);
 }
 
 .experience-tab > span {
@@ -562,6 +567,7 @@ button.cat-card {
 }
 
 .experience-tab small {
+  grid-column: 2;
   font-size: 0.66rem;
   font-weight: 900;
   text-transform: uppercase;
@@ -571,15 +577,22 @@ button.cat-card {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(290px, 0.92fr);
-  gap: clamp(1.3rem, 4vw, 3rem);
+  grid-area: feature;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 0;
   align-items: center;
   min-width: 0;
+  min-height: 620px;
+  padding: clamp(1rem, 3vw, 2.5rem);
   animation: inspector-in 420ms ease-out;
 }
 
 .experience-photo {
   position: relative;
+  z-index: 1;
+  grid-row: 1;
+  grid-column: 1 / 8;
+  align-self: start;
   min-width: 0;
   padding: 0.75rem 0.75rem 2.8rem;
   margin: 0;
@@ -672,8 +685,13 @@ button.cat-card {
 
 .experience-copy {
   position: relative;
+  z-index: 2;
+  grid-row: 1;
+  grid-column: 7 / 13;
+  align-self: center;
   min-width: 0;
   padding: clamp(1.3rem, 3vw, 2.5rem);
+  margin-top: 4rem;
   border: var(--line);
   background:
     radial-gradient(circle at 1px 1px, rgba(33, 28, 36, 0.15) 1.2px, transparent 0) 0 0 / 18px 18px,
@@ -1911,13 +1929,24 @@ footer a {
 
   .experience-feature {
     grid-template-columns: 1fr;
+    min-height: auto;
+    padding: 1rem;
   }
 
-  .experience-photo,
-  .experience-copy {
+  .experience-photo {
+    grid-row: 1;
+    grid-column: 1;
     width: min(720px, 100%);
     margin-right: auto;
     margin-left: auto;
+  }
+
+  .experience-copy {
+    z-index: 2;
+    grid-row: 2;
+    grid-column: 1;
+    width: min(660px, calc(100% - 2rem));
+    margin: -3rem auto 0;
   }
 
   .experience-photo > img,
@@ -2071,14 +2100,20 @@ footer a {
   }
 
   .experience-scrapbook {
+    grid-template-areas:
+      'rail'
+      'feature';
+    gap: 1.2rem;
     padding: 0.8rem;
     box-shadow: 8px 9px 0 var(--blue);
   }
 
   .experience-rail {
     display: flex;
-    padding: 0.3rem 0 0.9rem;
+    padding: 0.3rem 0 1rem;
     overflow-x: auto;
+    border-top: 0;
+    border-bottom: 2px dashed var(--ink);
     overscroll-behavior-inline: contain;
     scrollbar-width: thin;
     scroll-snap-type: x mandatory;
@@ -2092,6 +2127,11 @@ footer a {
   .experience-feature {
     grid-template-columns: 1fr;
     gap: 1.4rem;
+    padding: 0.4rem;
+  }
+
+  .experience-photo {
+    width: 100%;
   }
 
   .experience-photo > img,
@@ -2100,7 +2140,9 @@ footer a {
   }
 
   .experience-copy {
+    width: calc(100% - 1rem);
     padding: 1.3rem;
+    margin-top: -1.6rem;
     transform: none;
   }
 
@@ -2274,7 +2316,7 @@ footer a {
   }
 
   .experience-tab {
-    grid-template-columns: 30px minmax(0, 1fr) auto;
+    grid-template-columns: 30px minmax(0, 1fr);
     flex-basis: min(calc(100vw - 5.6rem), 270px);
     gap: 0.45rem;
     padding: 0.65rem;
