@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { FormEvent, PointerEvent } from 'react'
+import type { CSSProperties, FormEvent, PointerEvent } from 'react'
 import portrait from './assets/images/for_lanyard.jpg'
 import resume from './assets/resume/Hannah-Sheen-Resume.pdf'
 import catLaptop from './assets/cats/cat-laptop.jpg'
@@ -219,57 +219,17 @@ const brainrotCats = [
   },
 ]
 
-function CertificateCard({
-  certificate,
-  index,
-  onOpen,
-}: {
-  certificate: Certificate
-  index: number
-  onOpen: () => void
-}) {
-  const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
-    const card = event.currentTarget
-    const bounds = card.getBoundingClientRect()
-    const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5
-    const vertical = (event.clientY - bounds.top) / bounds.height - 0.5
-
-    card.style.setProperty('--rotate-x', `${vertical * -13}deg`)
-    card.style.setProperty('--rotate-y', `${horizontal * 15}deg`)
-  }
-
-  const resetTilt = (event: PointerEvent<HTMLButtonElement>) => {
-    event.currentTarget.style.setProperty('--rotate-x', '0deg')
-    event.currentTarget.style.setProperty('--rotate-y', '0deg')
-  }
-
-  return (
-    <button
-      className="certificate-card"
-      type="button"
-      onClick={onOpen}
-      onPointerMove={handlePointerMove}
-      onPointerLeave={resetTilt}
-    >
-      <span className="certificate-number">proof #{String(index + 1).padStart(2, '0')}</span>
-      <span className="certificate-frame">
-        <img src={certificate.image} alt={`${certificate.title} certificate`} />
-      </span>
-      <span className="certificate-meta">
-        <strong>{certificate.title}</strong>
-        <small>{certificate.issuer}</small>
-        <span>Open certificate</span>
-      </span>
-    </button>
-  )
-}
-
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeProject, setActiveProject] = useState<Project | null>(null)
   const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null)
+  const [featuredProjectIndex, setFeaturedProjectIndex] = useState(0)
+  const [featuredCertificateIndex, setFeaturedCertificateIndex] = useState(0)
   const [catNote, setCatNote] = useState(0)
   const [formStatus, setFormStatus] = useState('')
+
+  const featuredProject = projects[featuredProjectIndex]
+  const featuredCertificate = certificates[featuredCertificateIndex]
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -282,6 +242,36 @@ function App() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [])
+
+  const handlePointerDepth = (event: PointerEvent<HTMLElement>) => {
+    const target = event.currentTarget
+    const bounds = target.getBoundingClientRect()
+    const horizontal = (event.clientX - bounds.left) / bounds.width
+    const vertical = (event.clientY - bounds.top) / bounds.height
+
+    target.style.setProperty('--pointer-x', `${horizontal * 100}%`)
+    target.style.setProperty('--pointer-y', `${vertical * 100}%`)
+    target.style.setProperty('--tilt-x', `${(0.5 - vertical) * 5}deg`)
+    target.style.setProperty('--tilt-y', `${(horizontal - 0.5) * 7}deg`)
+  }
+
+  const resetPointerDepth = (event: PointerEvent<HTMLElement>) => {
+    const target = event.currentTarget
+    target.style.setProperty('--pointer-x', '50%')
+    target.style.setProperty('--pointer-y', '50%')
+    target.style.setProperty('--tilt-x', '0deg')
+    target.style.setProperty('--tilt-y', '0deg')
+  }
+
+  const cycleProject = (direction: number) => {
+    setFeaturedProjectIndex((current) => (current + direction + projects.length) % projects.length)
+  }
+
+  const cycleCertificate = (direction: number) => {
+    setFeaturedCertificateIndex(
+      (current) => (current + direction + certificates.length) % certificates.length,
+    )
+  }
 
   useEffect(() => {
     const revealItems = document.querySelectorAll<HTMLElement>('[data-reveal]')
@@ -488,18 +478,70 @@ function App() {
               <p className="section-kicker">03 / selected work</p>
               <h2 id="projects-title">Things I made instead of sleeping</h2>
             </div>
-            <p className="margin-note">Click a project for the short version.</p>
+            <p className="margin-note">Pick a file, move your cursor, then open the full case notes.</p>
           </div>
-          <div className="project-grid">
-            {projects.map((project) => (
-              <button className="project-card" type="button" key={project.title} onClick={() => setActiveProject(project)} data-reveal>
-                <span className="project-number">{project.number}</span>
+          <div
+            className="project-showcase"
+            data-reveal
+            onPointerMove={handlePointerDepth}
+            onPointerLeave={resetPointerDepth}
+          >
+            <div className="project-visual-stage">
+              <div className="project-ambient-card project-ambient-one" aria-hidden="true">
+                <img src={projects[(featuredProjectIndex + 1) % projects.length].image} alt="" />
+              </div>
+              <div className="project-ambient-card project-ambient-two" aria-hidden="true">
+                <img src={projects[(featuredProjectIndex + 2) % projects.length].image} alt="" />
+              </div>
+              <button
+                className="project-hero-card"
+                type="button"
+                onClick={() => setActiveProject(featuredProject)}
+                aria-label={`Open notes for ${featuredProject.title}`}
+              >
+                <span className="project-number">{featuredProject.number}</span>
+                <img key={featuredProject.title} src={featuredProject.image} alt={`${featuredProject.title} preview`} />
+                <span className="project-image-caption">click image to open case notes</span>
+              </button>
+            </div>
+
+            <article className="project-inspector" key={featuredProject.title}>
+              <p className="project-client">{featuredProject.client}</p>
+              <h3>{featuredProject.title}</h3>
+              <p>{featuredProject.description}</p>
+              <ul className="tag-list">
+                {featuredProject.stack.map((item) => <li key={item}>{item}</li>)}
+              </ul>
+              <div className="project-actions">
+                <button className="button button-primary" type="button" onClick={() => setActiveProject(featuredProject)}>
+                  Open case notes
+                </button>
+                <a className="button button-secondary" href={featuredProject.link} target="_blank" rel="noreferrer">
+                  GitHub source
+                </a>
+              </div>
+              <div className="showcase-controls" aria-label="Project navigation">
+                <button type="button" onClick={() => cycleProject(-1)}>Previous project</button>
+                <span>{featuredProjectIndex + 1} / {projects.length}</span>
+                <button type="button" onClick={() => cycleProject(1)}>Next project</button>
+              </div>
+            </article>
+          </div>
+
+          <div className="project-selector" aria-label="Choose a project" data-reveal>
+            {projects.map((project, index) => (
+              <button
+                className={index === featuredProjectIndex ? 'project-selector-item is-active' : 'project-selector-item'}
+                type="button"
+                key={project.title}
+                aria-pressed={index === featuredProjectIndex}
+                onClick={() => setFeaturedProjectIndex(index)}
+                onFocus={() => setFeaturedProjectIndex(index)}
+                onMouseEnter={() => setFeaturedProjectIndex(index)}
+              >
                 <img src={project.image} alt="" />
-                <div className="project-copy">
-                  <p>{project.client}</p>
-                  <h3>{project.title}</h3>
-                  <span>View notes</span>
-                </div>
+                <span>{project.number}</span>
+                <strong>{project.title}</strong>
               </button>
             ))}
           </div>
@@ -545,27 +587,82 @@ function App() {
           <div className="section-heading" data-reveal>
             <div>
               <p className="section-kicker">05 / proof I did the homework</p>
-              <h2 id="certificates-title">My cat-approved learning trail</h2>
+              <h2 id="certificates-title">The achievement deck</h2>
             </div>
-            <p className="margin-note">A crooked little timeline of things I learned. Click to inspect.</p>
+            <p className="margin-note">Shuffle the stack, select a certificate, then open the full proof.</p>
           </div>
-          <div className="certificate-trail">
-            <div className="certificate-cat-track" aria-hidden="true">
-              <img src={catTypingMeme} alt="" />
-              <span>me collecting one more certificate instead of closing tabs</span>
+          <div
+            className="certificate-gallery"
+            data-reveal
+            onPointerMove={handlePointerDepth}
+            onPointerLeave={resetPointerDepth}
+          >
+            <div className="certificate-deck" aria-label="Interactive certificate deck">
+              {certificates.map((certificate, index) => {
+                const offset = (index - featuredCertificateIndex + certificates.length) % certificates.length
+                const visualOffset = Math.min(offset, 4)
+                const deckStyle = {
+                  '--deck-offset': visualOffset,
+                  '--deck-x': `${visualOffset * 18}px`,
+                  '--deck-y': `${visualOffset * 22}px`,
+                  '--deck-z': `${visualOffset * -65}px`,
+                  '--deck-opacity': `${1 - visualOffset * 0.14}`,
+                  '--deck-rotation': `${[0, 2.5, -2, 4, -4][visualOffset]}deg`,
+                } as CSSProperties
+
+                return (
+                  <button
+                    className={`certificate-deck-card${offset === 0 ? ' is-active' : ''}${offset > 4 ? ' is-buried' : ''}`}
+                    style={deckStyle}
+                    type="button"
+                    key={certificate.title}
+                    onClick={() => {
+                      if (offset === 0) setActiveCertificate(certificate)
+                      else setFeaturedCertificateIndex(index)
+                    }}
+                    aria-label={offset === 0 ? `Open ${certificate.title}` : `Select ${certificate.title}`}
+                  >
+                    <span>proof #{String(index + 1).padStart(2, '0')}</span>
+                    <img src={certificate.image} alt={`${certificate.title} certificate`} />
+                    <strong>{offset === 0 ? 'open full certificate' : 'bring to front'}</strong>
+                  </button>
+                )
+              })}
             </div>
-            <div className="certificate-stage">
-              {certificates.map((certificate, index) => (
-                <div className="certificate-plot" data-reveal key={certificate.title}>
-                  <span className="certificate-node" aria-hidden="true" />
-                  <CertificateCard
-                    certificate={certificate}
-                    index={index}
-                    onOpen={() => setActiveCertificate(certificate)}
-                  />
+
+            <article className="certificate-console" key={featuredCertificate.title}>
+              <p className="certificate-count">selected proof {featuredCertificateIndex + 1} / {certificates.length}</p>
+              <h3>{featuredCertificate.title}</h3>
+              <p className="company-name">{featuredCertificate.issuer}</p>
+              <p>Selected from the learning archive and inspected by the resident cat supervisor.</p>
+              <div className="certificate-console-actions">
+                <button className="button button-primary" type="button" onClick={() => setActiveCertificate(featuredCertificate)}>
+                  Open full certificate
+                </button>
+                <div className="showcase-controls" aria-label="Certificate navigation">
+                  <button type="button" onClick={() => cycleCertificate(-1)}>Previous</button>
+                  <button type="button" onClick={() => cycleCertificate(1)}>Next</button>
                 </div>
-              ))}
-            </div>
+              </div>
+              <div className="certificate-selector" aria-label="Choose a certificate">
+                {certificates.map((certificate, index) => (
+                  <button
+                    className={index === featuredCertificateIndex ? 'is-active' : ''}
+                    type="button"
+                    key={certificate.title}
+                    aria-label={`Select ${certificate.title}`}
+                    aria-pressed={index === featuredCertificateIndex}
+                    onClick={() => setFeaturedCertificateIndex(index)}
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </button>
+                ))}
+              </div>
+              <div className="certificate-cat-chip">
+                <img src={catTypingMeme} alt="Animated cat typing on a laptop" />
+                <span>learning archive operator</span>
+              </div>
+            </article>
           </div>
         </section>
 
