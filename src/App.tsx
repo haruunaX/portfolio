@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { CSSProperties, FormEvent, PointerEvent } from 'react'
+import type { FormEvent, PointerEvent } from 'react'
 import portrait from './assets/images/for_lanyard.jpg'
 import resume from './assets/resume/Hannah-Sheen-Resume.pdf'
 import catLaptop from './assets/cats/cat-laptop.jpg'
@@ -40,15 +40,31 @@ type Certificate = {
   image: string
 }
 
+type Experience = {
+  period: string
+  role: string
+  company: string
+  description: string
+  tags: string[]
+  current?: boolean
+  image?: string
+  imageAlt?: string
+  imageCaption?: string
+  article?: string
+}
+
 const navigation = ['about', 'experience', 'projects', 'skills', 'certificates', 'contact']
 
-const experiences = [
+const schoolPressImage = 'https://www.ctu.edu.ph/wp-content/uploads/2026/01/1-2-1024x768.jpg'
+
+const experiences: Experience[] = [
   {
     period: 'Present',
     role: 'IT Executive Assistant',
     company: 'Lifewood Data Technology',
     description:
       'Supporting day-to-day IT operations while keeping people, priorities, and technical work organized and moving forward.',
+    tags: ['IT Operations', 'Executive Support', 'Coordination'],
     current: true,
   },
   {
@@ -57,6 +73,7 @@ const experiences = [
     company: 'Google Developer Groups on Campus - CTUMC',
     description:
       'Coordinated equipment, venue preparation, and event logistics for developer bootcamps and student tech workshops.',
+    tags: ['Event Logistics', 'Inventory', 'Teamwork'],
   },
   {
     period: '2024',
@@ -64,6 +81,10 @@ const experiences = [
     company: 'Cebu Technological University',
     description:
       'Led the development of BARIOS, an administrative platform designed to reduce manual barangay workflows.',
+    tags: ['Project Management', 'BARIOS', 'Systems Delivery'],
+    image: ciudad,
+    imageAlt: 'BARIOS administrative system interface',
+    imageCaption: 'BARIOS system field file',
   },
   {
     period: '2024',
@@ -71,12 +92,19 @@ const experiences = [
     company: 'Brgy. San Roque',
     description:
       'Delivered hands-on digital literacy and system training with the CTU Main CCICT extension team.',
+    tags: ['Technical Instruction', 'Digital Skills', 'Community'],
+    image: schoolPressImage,
+    imageAlt: 'CTU Main CCICT digital skills training at Barangay San Roque',
+    imageCaption: 'Featured by the official CTU school press',
+    article:
+      'https://www.ctu.edu.ph/ctu-main-ccict-equips-barangay-san-roque-personnel-with-essential-digital-skills/',
   },
   {
     period: '2023',
     role: 'Back End Developer Intern',
     company: 'Camtastic Philippines Corp.',
     description: 'Worked on backend logic using Pascal and SQL-based systems.',
+    tags: ['Pascal', 'SQL', 'Backend Logic'],
   },
   {
     period: '2023',
@@ -84,6 +112,10 @@ const experiences = [
     company: 'Lifewood Data Technology PH',
     description:
       'Worked across enterprise workflows, prompt engineering, efficient coding, and modern AI-assisted tools.',
+    tags: ['Full Stack', 'AI Tools', 'Prompt Engineering'],
+    image: lifewoodWebsite,
+    imageAlt: 'Lifewood website project interface',
+    imageCaption: 'Lifewood digital project archive',
   },
 ]
 
@@ -219,17 +251,62 @@ const brainrotCats = [
   },
 ]
 
+function CertificateCard({
+  certificate,
+  index,
+  onOpen,
+}: {
+  certificate: Certificate
+  index: number
+  onOpen: () => void
+}) {
+  const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+    const card = event.currentTarget
+    const bounds = card.getBoundingClientRect()
+    const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5
+    const vertical = (event.clientY - bounds.top) / bounds.height - 0.5
+
+    card.style.setProperty('--rotate-x', `${vertical * -13}deg`)
+    card.style.setProperty('--rotate-y', `${horizontal * 15}deg`)
+  }
+
+  const resetTilt = (event: PointerEvent<HTMLButtonElement>) => {
+    event.currentTarget.style.setProperty('--rotate-x', '0deg')
+    event.currentTarget.style.setProperty('--rotate-y', '0deg')
+  }
+
+  return (
+    <button
+      className="certificate-card"
+      type="button"
+      onClick={onOpen}
+      onPointerMove={handlePointerMove}
+      onPointerLeave={resetTilt}
+    >
+      <span className="certificate-number">proof #{String(index + 1).padStart(2, '0')}</span>
+      <span className="certificate-frame">
+        <img src={certificate.image} alt={`${certificate.title} certificate`} />
+      </span>
+      <span className="certificate-meta">
+        <strong>{certificate.title}</strong>
+        <small>{certificate.issuer}</small>
+        <span>Open certificate</span>
+      </span>
+    </button>
+  )
+}
+
 function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeProject, setActiveProject] = useState<Project | null>(null)
   const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null)
+  const [featuredExperienceIndex, setFeaturedExperienceIndex] = useState(0)
   const [featuredProjectIndex, setFeaturedProjectIndex] = useState(0)
-  const [featuredCertificateIndex, setFeaturedCertificateIndex] = useState(0)
   const [catNote, setCatNote] = useState(0)
   const [formStatus, setFormStatus] = useState('')
 
+  const featuredExperience = experiences[featuredExperienceIndex]
   const featuredProject = projects[featuredProjectIndex]
-  const featuredCertificate = certificates[featuredCertificateIndex]
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -267,9 +344,9 @@ function App() {
     setFeaturedProjectIndex((current) => (current + direction + projects.length) % projects.length)
   }
 
-  const cycleCertificate = (direction: number) => {
-    setFeaturedCertificateIndex(
-      (current) => (current + direction + certificates.length) % certificates.length,
+  const cycleExperience = (direction: number) => {
+    setFeaturedExperienceIndex(
+      (current) => (current + direction + experiences.length) % experiences.length,
     )
   }
 
@@ -440,20 +517,67 @@ function App() {
               <p className="section-kicker">02 / work log</p>
               <h2 id="experience-title">Places I have been useful</h2>
             </div>
-            <p className="margin-note">A timeline, but with more personality.</p>
+            <p className="margin-note">Pick a career file. Hover, tap, inspect, repeat.</p>
           </div>
-          <div className="experience-list">
-            {experiences.map((item) => (
-              <article className={item.current ? 'experience-item current' : 'experience-item'} key={`${item.role}-${item.company}`} data-reveal>
-                <p className="experience-period">{item.period}</p>
-                <div>
-                  <h3>{item.role}</h3>
-                  <p className="company-name">{item.company}</p>
+          <div
+            className="experience-scrapbook"
+            data-reveal
+            onPointerMove={handlePointerDepth}
+            onPointerLeave={resetPointerDepth}
+          >
+            <div className="experience-rail" aria-label="Choose a work experience">
+              {experiences.map((item, index) => (
+                <button
+                  className={index === featuredExperienceIndex ? 'experience-tab is-active' : 'experience-tab'}
+                  type="button"
+                  key={`${item.role}-${item.company}`}
+                  aria-pressed={index === featuredExperienceIndex}
+                  onClick={() => setFeaturedExperienceIndex(index)}
+                  onFocus={() => setFeaturedExperienceIndex(index)}
+                  onMouseEnter={() => setFeaturedExperienceIndex(index)}
+                >
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                  <strong>{item.role}</strong>
+                  <small>{item.period}</small>
+                </button>
+              ))}
+            </div>
+
+            <article className="experience-feature" key={`${featuredExperience.role}-${featuredExperience.company}`}>
+              <figure className={featuredExperience.image ? 'experience-photo' : 'experience-photo is-placeholder'}>
+                {featuredExperience.image ? (
+                  <img src={featuredExperience.image} alt={featuredExperience.imageAlt ?? ''} />
+                ) : (
+                  <div className="experience-photo-placeholder">
+                    <img src={catLaptopSticker} alt="Animated cat typing on a laptop" />
+                    <span>archive photo missing / cat reenactment deployed</span>
+                  </div>
+                )}
+                <figcaption>{featuredExperience.imageCaption ?? 'classified work archive'}</figcaption>
+                <span className="experience-photo-label">file {String(featuredExperienceIndex + 1).padStart(2, '0')}</span>
+              </figure>
+
+              <div className="experience-copy">
+                <p className="experience-period">{featuredExperience.period}</p>
+                <h3>{featuredExperience.role}</h3>
+                <p className="company-name">{featuredExperience.company}</p>
+                <p className="experience-description">{featuredExperience.description}</p>
+                <ul className="experience-tags">
+                  {featuredExperience.tags.map((tag) => <li key={tag}>{tag}</li>)}
+                </ul>
+                {featuredExperience.article && (
+                  <a className="press-pass" href={featuredExperience.article} target="_blank" rel="noreferrer">
+                    Read the CTU school press <span aria-hidden="true">↗</span>
+                  </a>
+                )}
+                <div className="showcase-controls" aria-label="Experience navigation">
+                  <button type="button" onClick={() => cycleExperience(-1)}>Previous file</button>
+                  <span>{featuredExperienceIndex + 1} / {experiences.length}</span>
+                  <button type="button" onClick={() => cycleExperience(1)}>Next file</button>
                 </div>
-                <p>{item.description}</p>
-                {item.current && <span className="current-stamp">now</span>}
-              </article>
-            ))}
+                {featuredExperience.current && <span className="current-stamp">now</span>}
+              </div>
+            </article>
           </div>
         </section>
 
@@ -587,82 +711,27 @@ function App() {
           <div className="section-heading" data-reveal>
             <div>
               <p className="section-kicker">05 / proof I did the homework</p>
-              <h2 id="certificates-title">The achievement deck</h2>
+              <h2 id="certificates-title">My cat-approved learning trail</h2>
             </div>
-            <p className="margin-note">Shuffle the stack, select a certificate, then open the full proof.</p>
+            <p className="margin-note">A crooked little timeline of things I learned. Click to inspect.</p>
           </div>
-          <div
-            className="certificate-gallery"
-            data-reveal
-            onPointerMove={handlePointerDepth}
-            onPointerLeave={resetPointerDepth}
-          >
-            <div className="certificate-deck" aria-label="Interactive certificate deck">
-              {certificates.map((certificate, index) => {
-                const offset = (index - featuredCertificateIndex + certificates.length) % certificates.length
-                const visualOffset = Math.min(offset, 4)
-                const deckStyle = {
-                  '--deck-offset': visualOffset,
-                  '--deck-x': `${visualOffset * 18}px`,
-                  '--deck-y': `${visualOffset * 22}px`,
-                  '--deck-z': `${visualOffset * -65}px`,
-                  '--deck-opacity': `${1 - visualOffset * 0.14}`,
-                  '--deck-rotation': `${[0, 2.5, -2, 4, -4][visualOffset]}deg`,
-                } as CSSProperties
-
-                return (
-                  <button
-                    className={`certificate-deck-card${offset === 0 ? ' is-active' : ''}${offset > 4 ? ' is-buried' : ''}`}
-                    style={deckStyle}
-                    type="button"
-                    key={certificate.title}
-                    onClick={() => {
-                      if (offset === 0) setActiveCertificate(certificate)
-                      else setFeaturedCertificateIndex(index)
-                    }}
-                    aria-label={offset === 0 ? `Open ${certificate.title}` : `Select ${certificate.title}`}
-                  >
-                    <span>proof #{String(index + 1).padStart(2, '0')}</span>
-                    <img src={certificate.image} alt={`${certificate.title} certificate`} />
-                    <strong>{offset === 0 ? 'open full certificate' : 'bring to front'}</strong>
-                  </button>
-                )
-              })}
+          <div className="certificate-trail">
+            <div className="certificate-cat-track" aria-hidden="true">
+              <img src={catTypingMeme} alt="" />
+              <span>me collecting one more certificate instead of closing tabs</span>
             </div>
-
-            <article className="certificate-console" key={featuredCertificate.title}>
-              <p className="certificate-count">selected proof {featuredCertificateIndex + 1} / {certificates.length}</p>
-              <h3>{featuredCertificate.title}</h3>
-              <p className="company-name">{featuredCertificate.issuer}</p>
-              <p>Selected from the learning archive and inspected by the resident cat supervisor.</p>
-              <div className="certificate-console-actions">
-                <button className="button button-primary" type="button" onClick={() => setActiveCertificate(featuredCertificate)}>
-                  Open full certificate
-                </button>
-                <div className="showcase-controls" aria-label="Certificate navigation">
-                  <button type="button" onClick={() => cycleCertificate(-1)}>Previous</button>
-                  <button type="button" onClick={() => cycleCertificate(1)}>Next</button>
+            <div className="certificate-stage">
+              {certificates.map((certificate, index) => (
+                <div className="certificate-plot" data-reveal key={certificate.title}>
+                  <span className="certificate-node" aria-hidden="true" />
+                  <CertificateCard
+                    certificate={certificate}
+                    index={index}
+                    onOpen={() => setActiveCertificate(certificate)}
+                  />
                 </div>
-              </div>
-              <div className="certificate-selector" aria-label="Choose a certificate">
-                {certificates.map((certificate, index) => (
-                  <button
-                    className={index === featuredCertificateIndex ? 'is-active' : ''}
-                    type="button"
-                    key={certificate.title}
-                    aria-label={`Select ${certificate.title}`}
-                    aria-pressed={index === featuredCertificateIndex}
-                    onClick={() => setFeaturedCertificateIndex(index)}
-                  >
-                    {String(index + 1).padStart(2, '0')}
-                  </button>
-                ))}
-              </div>
-              <div className="certificate-cat-chip">
-                <img src={catTypingMeme} alt="Animated cat typing on a laptop" />
-                <span>learning archive operator</span>
-              </div>
-            </article>
+              ))}
+            </div>
           </div>
         </section>
 
