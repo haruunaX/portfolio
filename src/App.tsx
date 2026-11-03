@@ -300,12 +300,11 @@ function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeProject, setActiveProject] = useState<Project | null>(null)
   const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null)
-  const [featuredExperienceIndex, setFeaturedExperienceIndex] = useState(0)
+  const [featuredExperienceIndex, setFeaturedExperienceIndex] = useState<number | null>(0)
   const [featuredProjectIndex, setFeaturedProjectIndex] = useState(0)
   const [catNote, setCatNote] = useState(0)
   const [formStatus, setFormStatus] = useState('')
 
-  const featuredExperience = experiences[featuredExperienceIndex]
   const featuredProject = projects[featuredProjectIndex]
 
   useEffect(() => {
@@ -342,12 +341,6 @@ function App() {
 
   const cycleProject = (direction: number) => {
     setFeaturedProjectIndex((current) => (current + direction + projects.length) % projects.length)
-  }
-
-  const cycleExperience = (direction: number) => {
-    setFeaturedExperienceIndex(
-      (current) => (current + direction + experiences.length) % experiences.length,
-    )
   }
 
   useEffect(() => {
@@ -519,65 +512,63 @@ function App() {
             </div>
             <p className="margin-note">Pick a career file. Hover, tap, inspect, repeat.</p>
           </div>
-          <div
-            className="experience-scrapbook"
-            data-reveal
-            onPointerMove={handlePointerDepth}
-            onPointerLeave={resetPointerDepth}
-          >
-            <div className="experience-rail" aria-label="Choose a work experience">
-              {experiences.map((item, index) => (
-                <button
-                  className={index === featuredExperienceIndex ? 'experience-tab is-active' : 'experience-tab'}
-                  type="button"
+          <div className="experience-accordion" data-reveal>
+            {experiences.map((item, index) => {
+              const isOpen = featuredExperienceIndex === index
+              const panelId = `experience-panel-${index}`
+
+              return (
+                <article
+                  className={`experience-folder${isOpen ? ' is-open' : ''}${item.current ? ' is-current' : ''}`}
                   key={`${item.role}-${item.company}`}
-                  aria-pressed={index === featuredExperienceIndex}
-                  onClick={() => setFeaturedExperienceIndex(index)}
-                  onFocus={() => setFeaturedExperienceIndex(index)}
-                  onMouseEnter={() => setFeaturedExperienceIndex(index)}
                 >
-                  <span>{String(index + 1).padStart(2, '0')}</span>
-                  <strong>{item.role}</strong>
-                  <small>{item.period}</small>
-                </button>
-              ))}
-            </div>
+                  <button
+                    className="experience-folder-trigger"
+                    type="button"
+                    aria-expanded={isOpen}
+                    aria-controls={panelId}
+                    onClick={() => setFeaturedExperienceIndex((current) => current === index ? null : index)}
+                  >
+                    <span className="experience-folder-number">{String(index + 1).padStart(2, '0')}</span>
+                    <span className="experience-folder-heading">
+                      <small>{item.period}</small>
+                      <strong>{item.role}</strong>
+                      <span>{item.company}</span>
+                    </span>
+                    <span className="experience-folder-action">{isOpen ? 'close file' : 'open file'}</span>
+                    {item.current && <span className="current-stamp">now</span>}
+                  </button>
 
-            <article className="experience-feature" key={`${featuredExperience.role}-${featuredExperience.company}`}>
-              <figure className={featuredExperience.image ? 'experience-photo' : 'experience-photo is-placeholder'}>
-                {featuredExperience.image ? (
-                  <img src={featuredExperience.image} alt={featuredExperience.imageAlt ?? ''} />
-                ) : (
-                  <div className="experience-photo-placeholder">
-                    <img src={catLaptopSticker} alt="Animated cat typing on a laptop" />
-                    <span>archive photo missing / cat reenactment deployed</span>
-                  </div>
-                )}
-                <figcaption>{featuredExperience.imageCaption ?? 'classified work archive'}</figcaption>
-                <span className="experience-photo-label">file {String(featuredExperienceIndex + 1).padStart(2, '0')}</span>
-              </figure>
+                  {isOpen && (
+                    <div className="experience-folder-panel" id={panelId}>
+                      <figure className={item.image ? 'experience-folder-photo' : 'experience-folder-photo is-placeholder'}>
+                        {item.image ? (
+                          <img src={item.image} alt={item.imageAlt ?? ''} />
+                        ) : (
+                          <div className="experience-folder-placeholder">
+                            <img src={catLaptopSticker} alt="Animated cat typing on a laptop" />
+                            <span>archive photo missing / cat reenactment deployed</span>
+                          </div>
+                        )}
+                        <figcaption>{item.imageCaption ?? 'classified work archive'}</figcaption>
+                      </figure>
 
-              <div className="experience-copy">
-                <p className="experience-period">{featuredExperience.period}</p>
-                <h3>{featuredExperience.role}</h3>
-                <p className="company-name">{featuredExperience.company}</p>
-                <p className="experience-description">{featuredExperience.description}</p>
-                <ul className="experience-tags">
-                  {featuredExperience.tags.map((tag) => <li key={tag}>{tag}</li>)}
-                </ul>
-                {featuredExperience.article && (
-                  <a className="press-pass" href={featuredExperience.article} target="_blank" rel="noreferrer">
-                    Read the CTU school press <span aria-hidden="true">↗</span>
-                  </a>
-                )}
-                <div className="showcase-controls" aria-label="Experience navigation">
-                  <button type="button" onClick={() => cycleExperience(-1)}>Previous file</button>
-                  <span>{featuredExperienceIndex + 1} / {experiences.length}</span>
-                  <button type="button" onClick={() => cycleExperience(1)}>Next file</button>
-                </div>
-                {featuredExperience.current && <span className="current-stamp">now</span>}
-              </div>
-            </article>
+                      <div className="experience-folder-notes">
+                        <p>{item.description}</p>
+                        <ul className="experience-tags">
+                          {item.tags.map((tag) => <li key={tag}>{tag}</li>)}
+                        </ul>
+                        {item.article && (
+                          <a className="press-pass" href={item.article} target="_blank" rel="noreferrer">
+                            Read the CTU school press <span aria-hidden="true">↗</span>
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </article>
+              )
+            })}
           </div>
         </section>
 
