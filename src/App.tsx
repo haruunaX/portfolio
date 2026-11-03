@@ -59,7 +59,7 @@ const schoolPressImage = 'https://www.ctu.edu.ph/wp-content/uploads/2026/01/1-2-
 
 const experiences: Experience[] = [
   {
-    period: 'Present',
+    period: '2026 - Present',
     role: 'IT Executive Assistant',
     company: 'Lifewood Data Technology',
     description:
@@ -68,28 +68,27 @@ const experiences: Experience[] = [
     current: true,
   },
   {
-    period: '2025',
-    role: 'Logistics Officer',
-    company: 'Google Developer Groups on Campus - CTUMC',
+    period: 'Mar 2026 - Jun 2026',
+    role: 'Full Stack Developer Intern',
+    company: 'Lifewood Data Technology PH',
     description:
-      'Coordinated equipment, venue preparation, and event logistics for developer bootcamps and student tech workshops.',
-    tags: ['Event Logistics', 'Inventory', 'Teamwork'],
+      'Worked across enterprise workflows, prompt engineering, efficient coding, and modern AI-assisted tools.',
+    tags: ['Full Stack', 'AI Tools', 'Prompt Engineering'],
+    image: lifewoodWebsite,
+    imageAlt: 'Lifewood website project interface',
+    imageCaption: 'Lifewood digital project archive',
   },
   {
-    period: '2024',
-    role: 'Project Management Lead',
-    company: 'Cebu Technological University',
-    description:
-      'Led the development of BARIOS, an administrative platform designed to reduce manual barangay workflows.',
-    tags: ['Project Management', 'BARIOS', 'Systems Delivery'],
-    image: ciudad,
-    imageAlt: 'BARIOS administrative system interface',
-    imageCaption: 'BARIOS system field file',
+    period: 'Jan 2026 - Mar 2026',
+    role: 'Back End Developer Intern',
+    company: 'Camtastic Philippines Corp.',
+    description: 'Worked on backend logic using Pascal and SQL-based systems.',
+    tags: ['Pascal', 'SQL', 'Backend Logic'],
   },
   {
-    period: '2024',
-    role: 'Technical Instructor',
-    company: 'Brgy. San Roque',
+    period: 'Aug 2025 - Oct 2025',
+    role: 'Technical Training Instructor',
+    company: 'Barangay San Roque (Ciudad)',
     description:
       'Delivered hands-on digital literacy and system training with the CTU Main CCICT extension team.',
     tags: ['Technical Instruction', 'Digital Skills', 'Community'],
@@ -100,22 +99,23 @@ const experiences: Experience[] = [
       'https://www.ctu.edu.ph/ctu-main-ccict-equips-barangay-san-roque-personnel-with-essential-digital-skills/',
   },
   {
-    period: '2023',
-    role: 'Back End Developer Intern',
-    company: 'Camtastic Philippines Corp.',
-    description: 'Worked on backend logic using Pascal and SQL-based systems.',
-    tags: ['Pascal', 'SQL', 'Backend Logic'],
+    period: 'Feb 2025 - Oct 2025',
+    role: 'Project Management Lead',
+    company: 'Cebu Technological University',
+    description:
+      'Led the development of BARIOS, an administrative platform designed to reduce manual barangay workflows.',
+    tags: ['Project Management', 'BARIOS', 'Systems Delivery'],
+    image: ciudad,
+    imageAlt: 'BARIOS administrative system interface',
+    imageCaption: 'BARIOS system field file',
   },
   {
-    period: '2023',
-    role: 'Full Stack Developer Intern',
-    company: 'Lifewood Data Technology PH',
+    period: 'Oct 2024 - Jan 2025',
+    role: 'Logistics Officer',
+    company: 'Google Developer Groups on Campus - CTUMC',
     description:
-      'Worked across enterprise workflows, prompt engineering, efficient coding, and modern AI-assisted tools.',
-    tags: ['Full Stack', 'AI Tools', 'Prompt Engineering'],
-    image: lifewoodWebsite,
-    imageAlt: 'Lifewood website project interface',
-    imageCaption: 'Lifewood digital project archive',
+      'Coordinated equipment, venue preparation, and event logistics for developer bootcamps and student tech workshops.',
+    tags: ['Event Logistics', 'Inventory', 'Teamwork'],
   },
 ]
 
