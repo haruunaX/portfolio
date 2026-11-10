@@ -1,73 +1,29 @@
-# React + TypeScript + Vite
+# Hannah Sheen's portfolio
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React + TypeScript portfolio with a playful scrapbook style, project previews, career files, certificates, and a contact form.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```sh
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+`npm run build` checks TypeScript and produces the frontend in `dist/`.
+`npm run preview` serves that production build locally.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Visuals and animation
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `src/App.tsx` owns the active single-page experience and its content.
+- `src/index.css` owns the palette, responsive layouts, staggered hero entrances, scroll reveals, and hover interactions.
+- The existing `motion` dependency animates experience-panel height and project changes. Project navigation stays mounted to preserve keyboard focus; preview transitions finish their exit before showing the latest selection.
+- Reduced motion follows the operating-system preference, including changes made while the page is open. It disables decorative motion and pointer tilt, makes panel transitions instant, and replaces animated cats with still images.
+- Closed experience panels are inert and hidden from assistive technology. Small-screen project selectors scroll horizontally without moving the surrounding page.
+
+## Manual UI checks
+
+Check desktop and mobile navigation, all five projects in both directions, rapid project switching followed by opening/closing case notes, experience expansion/collapse, and certificate dialogs. Confirm the resume link and required contact fields remain available.
+
+Check widths from 320px through desktop and toggle reduced motion both before and after loading the page. No page-wide horizontal scrolling or hidden selected-project preview should remain.
+
+Frontend checks do not send email or verify delivery through the contact API.

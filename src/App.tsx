@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useSyncExternalStore } from 'react'
 import type { FormEvent, PointerEvent } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import portrait from './assets/images/for_lanyard.jpg'
 import resume from './assets/resume/Hannah-Sheen-Resume.pdf'
 import catLaptop from './assets/cats/cat-laptop.jpg'
@@ -54,6 +55,16 @@ type Experience = {
 }
 
 const navigation = ['about', 'experience', 'projects', 'skills', 'certificates', 'contact']
+const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+function subscribeToMotionPreference(onChange: () => void) {
+  motionPreference.addEventListener('change', onChange)
+  return () => motionPreference.removeEventListener('change', onChange)
+}
+
+function getMotionPreference() {
+  return motionPreference.matches
+}
 
 const schoolPressImage = 'https://www.ctu.edu.ph/wp-content/uploads/2026/01/1-2-1024x768.jpg'
 
@@ -255,12 +266,15 @@ function CertificateCard({
   certificate,
   index,
   onOpen,
+  reduceMotion,
 }: {
   certificate: Certificate
   index: number
   onOpen: () => void
+  reduceMotion: boolean
 }) {
   const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+    if (reduceMotion || event.pointerType !== 'mouse') return
     const card = event.currentTarget
     const bounds = card.getBoundingClientRect()
     const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5
@@ -285,7 +299,7 @@ function CertificateCard({
     >
       <span className="certificate-number">proof #{String(index + 1).padStart(2, '0')}</span>
       <span className="certificate-frame">
-        <img src={certificate.image} alt={`${certificate.title} certificate`} />
+        <img src={certificate.image} alt={`${certificate.title} certificate`} loading="lazy" />
       </span>
       <span className="certificate-meta">
         <strong>{certificate.title}</strong>
@@ -297,6 +311,7 @@ function CertificateCard({
 }
 
 function App() {
+  const reduceMotion = useSyncExternalStore(subscribeToMotionPreference, getMotionPreference)
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeProject, setActiveProject] = useState<Project | null>(null)
   const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null)
@@ -320,6 +335,7 @@ function App() {
   }, [])
 
   const handlePointerDepth = (event: PointerEvent<HTMLElement>) => {
+    if (reduceMotion || event.pointerType !== 'mouse') return
     const target = event.currentTarget
     const bounds = target.getBoundingClientRect()
     const horizontal = (event.clientX - bounds.left) / bounds.width
@@ -354,7 +370,7 @@ function App() {
           }
         })
       },
-      { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
+      { threshold: 0.06, rootMargin: '0px 0px -24px 0px' },
     )
 
     revealItems.forEach((item) => observer.observe(item))
@@ -368,7 +384,7 @@ function App() {
       const scrollRange = document.documentElement.scrollHeight - window.innerHeight
       const progress = scrollRange > 0 ? window.scrollY / scrollRange : 0
       document.documentElement.style.setProperty('--scroll-progress', progress.toString())
-      document.documentElement.style.setProperty('--parallax-offset', `${window.scrollY * -0.014}px`)
+      document.documentElement.style.setProperty('--parallax-offset', reduceMotion ? '0px' : `${window.scrollY * -0.014}px`)
       frame = 0
     }
 
@@ -385,7 +401,7 @@ function App() {
       window.removeEventListener('resize', handleScroll)
       if (frame) window.cancelAnimationFrame(frame)
     }
-  }, [])
+  }, [reduceMotion])
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -435,11 +451,11 @@ function App() {
 
       <main id="top">
         <section className="hero section-pad" aria-labelledby="hero-title">
-          <div className="hero-copy" data-reveal>
+          <div className="hero-copy">
             <p className="eyebrow">Developer. Organizer. Professional tab hoarder.</p>
             <h1 id="hero-title">
-              Hannah
-              <span>Sheen</span>
+              <span className="hero-name">Hannah</span>
+              <span className="hero-name hero-name-accent">Sheen</span>
             </h1>
             <p className="hero-role">IT Executive Assistant + full-stack developer</p>
             <p className="hero-intro">
@@ -448,15 +464,16 @@ function App() {
             </p>
             <div className="hero-actions">
               <a className="button button-primary" href="#projects">
-                See my work
+                See my work <span className="button-arrow" aria-hidden="true">↗</span>
               </a>
               <a className="button button-secondary" href={resume} target="_blank" rel="noreferrer">
-                Open resume
+                Open resume <span className="button-arrow" aria-hidden="true">↗</span>
               </a>
             </div>
           </div>
 
-          <div className="hero-collage" aria-label="Portrait and cat photo collage" data-reveal>
+          <div className="hero-collage" aria-label="Portrait and cat photo collage">
+            <span className="collage-note" aria-hidden="true">the human behind the tabs ↴</span>
             <figure className="photo-card portrait-card">
               <img src={portrait} alt="Hannah Sheen" />
               <figcaption>me, probably planning something</figcaption>
@@ -473,6 +490,10 @@ function App() {
               <img src={catCouch} alt="A cat sitting beside a laptop" />
               <figcaption>my senior code reviewer</figcaption>
             </figure>
+          </div>
+          <div className="hero-footer">
+            <p>Based in Cebu, Philippines</p>
+            <a href="#about">A little more about me <span aria-hidden="true">↓</span></a>
           </div>
         </section>
 
@@ -539,14 +560,22 @@ function App() {
                     {item.current && <span className="current-stamp">now</span>}
                   </button>
 
-                  {isOpen && (
-                    <div className="experience-folder-panel" id={panelId}>
+                  <motion.div
+                    className="experience-panel-clip"
+                    id={panelId}
+                    inert={!isOpen}
+                    aria-hidden={!isOpen}
+                    initial={false}
+                    animate={{ height: isOpen ? 'auto' : 0, opacity: isOpen ? 1 : 0 }}
+                    transition={{ duration: reduceMotion ? 0 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <div className="experience-folder-panel">
                       <figure className={item.image ? 'experience-folder-photo' : 'experience-folder-photo is-placeholder'}>
                         {item.image ? (
-                          <img src={item.image} alt={item.imageAlt ?? ''} />
+                          <img src={item.image} alt={item.imageAlt ?? ''} loading="lazy" />
                         ) : (
                           <div className="experience-folder-placeholder">
-                            <img src={catLaptopSticker} alt="Animated cat typing on a laptop" />
+                            <img src={reduceMotion ? catLaptop : catLaptopSticker} alt={reduceMotion ? 'A cat beside a laptop' : 'Animated cat typing on a laptop'} loading="lazy" />
                             <span>archive photo missing / cat reenactment deployed</span>
                           </div>
                         )}
@@ -565,7 +594,7 @@ function App() {
                         )}
                       </div>
                     </div>
-                  )}
+                  </motion.div>
                 </article>
               )
             })}
@@ -573,7 +602,7 @@ function App() {
         </section>
 
         <aside className="meme-break meme-break-laptop" data-reveal aria-label="Cat coding intermission">
-          <img src={catLaptopSticker} alt="Animated cat typing on a laptop" />
+          <img src={reduceMotion ? catLaptop : catLaptopSticker} alt={reduceMotion ? 'A cat beside a laptop' : 'Animated cat typing on a laptop'} loading="lazy" />
           <div>
             <p className="section-kicker">intermission / live debugging footage</p>
             <h2>Open tab. Fix bug. Create three new bugs.</h2>
@@ -615,18 +644,38 @@ function App() {
                 aria-label={`Open notes for ${featuredProject.title}`}
               >
                 <span className="project-number">{featuredProject.number}</span>
-                <img key={featuredProject.title} src={featuredProject.image} alt={`${featuredProject.title} preview`} />
+                <span className="project-preview" aria-hidden="true">
+                  <AnimatePresence initial={false} mode="wait">
+                    <motion.img
+                      key={featuredProject.title}
+                      src={featuredProject.image}
+                      alt=""
+                      initial={{ opacity: 0, x: reduceMotion ? 0 : 24 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: reduceMotion ? 0 : -24 }}
+                      transition={{ duration: reduceMotion ? 0 : 0.18, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  </AnimatePresence>
+                </span>
                 <span className="project-image-caption">click image to open case notes</span>
               </button>
             </div>
 
-            <article className="project-inspector" key={featuredProject.title}>
-              <p className="project-client">{featuredProject.client}</p>
-              <h3>{featuredProject.title}</h3>
-              <p>{featuredProject.description}</p>
-              <ul className="tag-list">
-                {featuredProject.stack.map((item) => <li key={item}>{item}</li>)}
-              </ul>
+            <article className="project-inspector">
+              <motion.div
+                className="project-details"
+                key={featuredProject.title}
+                initial={{ opacity: reduceMotion ? 1 : 0, y: reduceMotion ? 0 : 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.35, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <p className="project-client">{featuredProject.client}</p>
+                <h3>{featuredProject.title}</h3>
+                <p>{featuredProject.description}</p>
+                <ul className="tag-list">
+                  {featuredProject.stack.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </motion.div>
               <div className="project-actions">
                 <button className="button button-primary" type="button" onClick={() => setActiveProject(featuredProject)}>
                   Open case notes
@@ -637,7 +686,7 @@ function App() {
               </div>
               <div className="showcase-controls" aria-label="Project navigation">
                 <button type="button" onClick={() => cycleProject(-1)}>Previous project</button>
-                <span>{featuredProjectIndex + 1} / {projects.length}</span>
+                <span aria-live="polite" aria-atomic="true">{featuredProjectIndex + 1} / {projects.length}</span>
                 <button type="button" onClick={() => cycleProject(1)}>Next project</button>
               </div>
             </article>
@@ -673,7 +722,7 @@ function App() {
           <div className="brainrot-grid">
             {brainrotCats.map((cat) => (
               <figure className="brainrot-card" key={cat.title}>
-                <img src={cat.image} alt={cat.alt} />
+                <img src={reduceMotion ? catSleepy : cat.image} alt={reduceMotion ? 'A fluffy cat resting on a blanket' : cat.alt} loading="lazy" />
                 <figcaption>
                   <strong>{cat.title}</strong>
                   <span>{cat.note}</span>
@@ -708,7 +757,7 @@ function App() {
           </div>
           <div className="certificate-trail">
             <div className="certificate-cat-track" aria-hidden="true">
-              <img src={catTypingMeme} alt="" />
+              <img src={reduceMotion ? catLaptop : catTypingMeme} alt="" loading="lazy" />
               <span>me collecting one more certificate instead of closing tabs</span>
             </div>
             <div className="certificate-stage">
@@ -719,6 +768,7 @@ function App() {
                     certificate={certificate}
                     index={index}
                     onOpen={() => setActiveCertificate(certificate)}
+                    reduceMotion={reduceMotion}
                   />
                 </div>
               ))}
@@ -731,7 +781,7 @@ function App() {
             <p className="section-kicker">quality assurance / passed</p>
             <h2>The tiny cat has reviewed the pull request.</h2>
           </div>
-          <img src={agingBlueCat} alt="Animated blue cat typing at a laptop" />
+          <img src={reduceMotion ? catCouch : agingBlueCat} alt={reduceMotion ? 'A cat sitting beside a laptop' : 'Animated blue cat typing at a laptop'} loading="lazy" />
         </aside>
 
         <section className="contact section-pad" id="contact" aria-labelledby="contact-title">
@@ -743,7 +793,7 @@ function App() {
               photos.
             </p>
             <div className="contact-cat-sticker">
-              <img src={judgementalCat} alt="Animated orange cat giving a judgmental look" />
+              <img src={reduceMotion ? catCouch : judgementalCat} alt={reduceMotion ? 'A cat sitting beside a laptop' : 'Animated orange cat giving a judgmental look'} loading="lazy" />
               <span>Inbox supervisor. Very judgmental.</span>
             </div>
             <div className="contact-links">
