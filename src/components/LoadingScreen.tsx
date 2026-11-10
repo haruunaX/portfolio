@@ -1,177 +1,270 @@
-// 'use client';
-// import { useEffect, useState, useRef } from 'react';
-// import RotatingText, { type RotatingTextRef } from './RotatingText';
-
-// interface LoadingScreenProps {
-//   onComplete: () => void;
-// }
-
-// export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
-//   const [isExiting, setIsExiting] = useState<boolean>(false);
-//   const rotatingTextRef = useRef<RotatingTextRef>(null);
-
-//   const dynamicWords = [
-//     'EXPERIENCES',  
-//     'ARCHITECTURES',
-//     'INTERFACES'
-//   ];
-
-//   useEffect(() => {
-//     // Word 0 (EXPERIENCES) starts immediately.
-    
-//     // Word 1: Wait for Word 0 to sit on screen, stagger out, and let ARCHITECTURES stagger in.
-//     const word1Timer = setTimeout(() => {
-//       rotatingTextRef.current?.next();
-//     }, 1400); // 1200ms rest + extra room for stagger overhead
-
-//     // Word 2: ARCHITECTURES is a massive word (13 chars). Its exit animation takes much longer.
-//     // We extend this window so it has time to sit fully on screen before moving on.
-//     const word2Timer = setTimeout(() => {
-//       rotatingTextRef.current?.next();
-//     }, 3100); // Expanded gap to perfectly offset the 13-character stagger layout delay
-
-//     // Exit Overlay: Give INTERFACES its beautiful 1200ms rest window plus animation overhead.
-//     const exitTimer = setTimeout(() => {
-//       setIsExiting(true);
-      
-//       const closureTimer = setTimeout(() => {
-//         onComplete();
-//       }, 600); // Main overlay panel ease-out
-      
-//       return () => clearTimeout(closureTimer);
-//     }, 4700); // Complete sequence total time allowance
-
-//     return () => {
-//       clearTimeout(word1Timer);
-//       clearTimeout(word2Timer);
-//       clearTimeout(exitTimer);
-//     };
-//   }, [onComplete]);
-
-//   return (
-//     <div 
-//       className={`fixed inset-0 z-[9999] bg-[#030712] flex items-center justify-center transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-//         isExiting ? 'opacity-0 scale-98 pointer-events-none' : 'opacity-100'
-//       }`}
-//       style={{ fontFamily: "'Manrope', sans-serif" }}
-//     >
-//       {/* Soft Center Background Ambient Glow Layer */}
-//       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/5 rounded-full blur-[140px] pointer-events-none" />
-      
-//       <div className="flex flex-row items-center justify-center gap-x-4 px-6 text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight select-none text-center">
-        
-//         <span className="text-white shrink-0 uppercase">
-//           BUILDING
-//         </span>
-
-//         <div className="inline-flex justify-start items-center text-indigo-400 overflow-hidden text-left min-w-[320px] sm:min-w-[420px] md:min-w-[500px]">
-//           <RotatingText
-//             ref={rotatingTextRef}
-//             texts={dynamicWords}
-//             animatePresenceMode="wait"
-//             loop={false}
-//             auto={false} // FORCE auto off so our optimized manual timeline balances the stagger delays
-//             splitBy="characters"
-//             staggerDuration={0.015} 
-//             staggerFrom="first"
-//             mainClassName="text-indigo-400 font-extrabold uppercase text-left"
-//             transition={{ type: 'spring', damping: 15, stiffness: 450 }} 
-//             initial={{ y: '100%', opacity: 0 }}
-//             animate={{ y: 0, opacity: 1 }}
-//             exit={{ y: '-100%', opacity: 0 }}
-//           />
-//         </div>
-
-//       </div>
-//     </div>
-//   );
-// }
-
-'use client';
-import { useEffect, useState, useRef } from 'react';
-import RotatingText, { type RotatingTextRef } from './RotatingText';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
+import catLaptop from '../assets/cats/cat-laptop.jpg'
+import catSleepy from '../assets/cats/cat-sleepy.jpg'
+import './LoadingScreen.css'
 
 interface LoadingScreenProps {
-  onComplete: () => void;
+  /** Fired exactly once, when the intro has finished leaving (ready, timed out, or skipped). */
+  onComplete: () => void
+  /** Image URLs to load and decode before the intro releases. */
+  assets?: readonly string[]
+  /** Static, instant intro with zero motion. */
+  reduceMotion?: boolean
 }
 
-export default function LoadingScreen({ onComplete }: LoadingScreenProps) {
-  const [isExiting, setIsExiting] = useState<boolean>(false);
-  const rotatingTextRef = useRef<RotatingTextRef>(null);
+type ExitReason = 'ready' | 'timeout' | 'skip'
 
-  const dynamicWords = [
-    'EXPERIENCES',  
-    'ARCHITECTURES',
-    'INTERFACES'
-  ];
+/** Upper bound before the UI is released even if assets stall (plus EXIT_MS, stays under 5s). */
+const MAX_WAIT_MS = 4400
+/** Brief floor so a fully cached start does not flash the loader for a single frame. */
+const MIN_VISIBLE_MS = 350
+const EXIT_MS = 360
+
+const FONTS_KEY = '__document-fonts__'
+const FONT_FACES = ['700 1em "DM Sans"', '1em "Bowlby One SC"', '600 1em "Caveat"']
+const FONT_SAMPLE = 'Hannah Sheen HS 0123456789'
+
+/** Loads and decodes one image. Always settles (load, decode, or error). Returns cleanup. */
+function loadImage(src: string, onSettle: (ok: boolean) => void): () => void {
+  const img = new Image()
+  let done = false
+  let started = false
+
+  const detach = () => {
+    img.removeEventListener('load', handleLoad)
+    img.removeEventListener('error', handleError)
+  }
+  const settle = (ok: boolean) => {
+    if (done) return
+    done = true
+    detach()
+    onSettle(ok)
+  }
+  function handleLoad() {
+    if (started) return
+    started = true
+    if (typeof img.decode === 'function') {
+      // A decode rejection after a successful load still leaves a usable image.
+      img.decode().then(
+        () => settle(true),
+        () => settle(true),
+      )
+    } else {
+      settle(true)
+    }
+  }
+  function handleError() {
+    settle(false)
+  }
+
+  img.addEventListener('load', handleLoad)
+  img.addEventListener('error', handleError)
+  img.decoding = 'async'
+  img.src = src
+  // Cached images may already be complete; the listeners above still cover the async event.
+  if (img.complete && img.naturalWidth > 0) handleLoad()
+
+  return () => {
+    done = true
+    detach()
+  }
+}
+
+/** Resolves once the fonts this intro and the hero use have loaded or failed. Returns cleanup. */
+function loadFonts(onSettle: () => void): () => void {
+  let done = false
+  const settle = () => {
+    if (done) return
+    done = true
+    onSettle()
+  }
+  const fonts: FontFaceSet | undefined = document.fonts
+  if (!fonts) {
+    settle()
+    return () => {
+      done = true
+    }
+  }
+  Promise.allSettled(FONT_FACES.map((face) => fonts.load(face, FONT_SAMPLE)))
+    .then(() => fonts.ready)
+    .then(settle, settle)
+  return () => {
+    done = true
+  }
+}
+
+const STAGE_LABEL: Record<ExitReason | 'loading', string> = {
+  loading: 'Loading fonts and photos',
+  ready: 'Ready',
+  timeout: 'Taking a while, opening anyway',
+  skip: 'Skipping intro',
+}
+
+export default function LoadingScreen({
+  onComplete,
+  assets = [],
+  reduceMotion = false,
+}: LoadingScreenProps) {
+  const titleId = useId()
+  const skipRef = useRef<HTMLButtonElement>(null)
+  const startRef = useRef<number | null>(null)
+  const completedRef = useRef(false)
+  const onCompleteRef = useRef(onComplete)
+
+  const [settled, setSettled] = useState<Readonly<Record<string, boolean>>>({})
+  const [forced, setForced] = useState<'timeout' | 'skip' | null>(null)
+  const [leaving, setLeaving] = useState(false)
+
+  // Callers often pass an inline callback; always call the latest one, never restart timers for it.
+  useEffect(() => {
+    onCompleteRef.current = onComplete
+  }, [onComplete])
+
+  // Join by newline so a fresh-but-equal `assets` array never restarts loading.
+  const urlKey = [catLaptop, catSleepy, ...assets].join('\n')
+  const urls = useMemo(() => Array.from(new Set(urlKey.split('\n'))).filter(Boolean), [urlKey])
+
+  const total = urls.length + 1
+  const done = urls.reduce((count, url) => count + (url in settled ? 1 : 0), FONTS_KEY in settled ? 1 : 0)
+  const failed = urls.reduce((count, url) => count + (settled[url] === false ? 1 : 0), 0)
+  const allSettled = done >= total
+
+  const exit: ExitReason | null = forced ?? (allSettled ? 'ready' : null)
+  const stage = exit ?? 'loading'
+  const percent = Math.min(100, Math.round((done / total) * 100))
 
   useEffect(() => {
-    // Word 0 (EXPERIENCES) starts immediately.
-    
-    // Word 1: Wait for Word 0 to sit on screen, stagger out, and let ARCHITECTURES stagger in.
-    const word1Timer = setTimeout(() => {
-      rotatingTextRef.current?.next();
-    }, 1400); // 1200ms rest + extra room for stagger overhead
+    startRef.current ??= performance.now()
+  }, [])
 
-    // Word 2: ARCHITECTURES is a massive word (13 chars). Its exit animation takes much longer.
-    // We extend this window so it has time to sit fully on screen before moving on.
-    const word2Timer = setTimeout(() => {
-      rotatingTextRef.current?.next();
-    }, 3100); // Expanded gap to perfectly offset the 13-character stagger layout delay
+  // Real readiness: every image loaded/decoded (or errored) plus fonts.
+  useEffect(() => {
+    const record = (key: string, ok: boolean) =>
+      setSettled((prev) => (key in prev ? prev : { ...prev, [key]: ok }))
+    const cleanups = urls.map((url) => loadImage(url, (ok) => record(url, ok)))
+    cleanups.push(loadFonts(() => record(FONTS_KEY, true)))
+    return () => cleanups.forEach((cleanup) => cleanup())
+  }, [urls])
 
-    // Exit Overlay: Give INTERFACES its beautiful 1200ms rest window plus animation overhead.
-    const exitTimer = setTimeout(() => {
-      setIsExiting(true);
-      
-      const closureTimer = setTimeout(() => {
-        onComplete();
-      }, 600); // Main overlay panel ease-out
-      
-      return () => clearTimeout(closureTimer);
-    }, 4700); // Complete sequence total time allowance
+  // Hard cap so stalled assets can never trap the user.
+  useEffect(() => {
+    if (allSettled || forced) return
+    const elapsed = performance.now() - (startRef.current ?? performance.now())
+    const timer = window.setTimeout(
+      () => setForced((prev) => prev ?? 'timeout'),
+      Math.max(0, MAX_WAIT_MS - elapsed),
+    )
+    return () => window.clearTimeout(timer)
+  }, [allSettled, forced])
 
+  // Exit sequence: optional anti-flash floor, short leave transition, then a single onComplete.
+  useEffect(() => {
+    if (!exit) return
+    const elapsed = performance.now() - (startRef.current ?? performance.now())
+    const wait = exit === 'ready' && !reduceMotion ? Math.max(0, MIN_VISIBLE_MS - elapsed) : 0
+    let leaveTimer: number | undefined
+    const waitTimer = window.setTimeout(() => {
+      setLeaving(true)
+      leaveTimer = window.setTimeout(() => {
+        if (completedRef.current) return
+        completedRef.current = true
+        onCompleteRef.current()
+      }, reduceMotion ? 0 : EXIT_MS)
+    }, wait)
     return () => {
-      clearTimeout(word1Timer);
-      clearTimeout(word2Timer);
-      clearTimeout(exitTimer);
-    };
-  }, [onComplete]);
+      window.clearTimeout(waitTimer)
+      window.clearTimeout(leaveTimer)
+    }
+  }, [exit, reduceMotion])
+
+  const skip = useCallback(() => {
+    if (!leaving) setForced('skip')
+  }, [leaving])
+
+  // Keyboard: the Skip button takes focus immediately; Escape also skips.
+  useEffect(() => {
+    skipRef.current?.focus({ preventScroll: true })
+  }, [])
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') skip()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [skip])
+
+  const statusText =
+    stage === 'ready' && failed > 0 ? 'Ready, some images were skipped' : STAGE_LABEL[stage]
+  const className = [
+    'intro-loader',
+    reduceMotion ? 'intro-loader--still' : '',
+    leaving ? 'is-leaving' : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
-    <div 
-      className={`fixed inset-0 z-[9999] bg-[#030712] flex items-center justify-center transition-all duration-[600ms] ease-[cubic-bezier(0.16,1,0.3,1)] ${
-        isExiting ? 'opacity-0 scale-98 pointer-events-none' : 'opacity-100'
-      }`}
-      style={{ fontFamily: "'Manrope', sans-serif" }}
+    <div
+      className={className}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-busy={exit === null}
+      style={{ '--intro-loader-progress': percent / 100 } as CSSProperties}
     >
-      {/* Soft Center Background Ambient Glow Layer */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] sm:w-[600px] sm:h-[600px] bg-indigo-500/5 rounded-full blur-[100px] sm:blur-[140px] pointer-events-none" />
-      
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-y-2 sm:gap-y-0 sm:gap-x-4 px-6 text-3xl sm:text-4xl md:text-6xl font-extrabold tracking-tight select-none text-center">
-        
-        <span className="text-white shrink-0 uppercase tracking-tight">
-          BUILDING
-        </span>
+      <button ref={skipRef} type="button" className="intro-loader__skip" onClick={skip}>
+        Skip intro<span aria-hidden="true"> →</span>
+      </button>
 
-        <div className="inline-flex justify-center sm:justify-start items-center text-indigo-400 overflow-hidden text-center sm:text-left min-w-[260px] sm:min-w-[420px] md:min-w-[500px]">
-          <RotatingText
-            ref={rotatingTextRef}
-            texts={dynamicWords}
-            animatePresenceMode="wait"
-            loop={false}
-            auto={false} // FORCE auto off so our optimized manual timeline balances the stagger delays
-            splitBy="characters"
-            staggerDuration={0.015} 
-            staggerFrom="first"
-            mainClassName="text-indigo-400 font-extrabold uppercase text-center sm:text-left"
-            transition={{ type: 'spring', damping: 15, stiffness: 450 }} 
-            initial={{ y: '100%', opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: '-100%', opacity: 0 }}
-          />
+      <div className="intro-loader__inner">
+        <div className="intro-loader__scene" aria-hidden="true">
+          <div className="intro-loader__camera">
+            <div className="intro-loader__stack">
+              <div className="intro-loader__card intro-loader__card--back">
+                <span className="intro-loader__tape" />
+              </div>
+              <figure className="intro-loader__card intro-loader__card--mid">
+                <img src={catSleepy} alt="" decoding="async" />
+                <figcaption>nap first</figcaption>
+              </figure>
+              <figure className="intro-loader__card intro-loader__card--front">
+                <img src={catLaptop} alt="" decoding="async" />
+                <figcaption>ship it</figcaption>
+              </figure>
+              <span className="intro-loader__stamp">HS</span>
+            </div>
+          </div>
         </div>
 
+        <div className="intro-loader__copy">
+          <p className="intro-loader__kicker" aria-hidden="true">
+            Hannah Sheen · portfolio
+          </p>
+          <p id={titleId} className="intro-loader__title">
+            Assembling the good stuff
+          </p>
+
+          <div
+            className="intro-loader__bar"
+            role="progressbar"
+            aria-label="Loading progress"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={percent}
+          >
+            <span className="intro-loader__fill" />
+          </div>
+
+          <div className="intro-loader__meta">
+            <p className="intro-loader__status" role="status">
+              {statusText}
+            </p>
+            <span className="intro-loader__percent" aria-hidden="true">
+              {percent}%
+            </span>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }
