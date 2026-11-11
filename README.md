@@ -1,8 +1,8 @@
 # Hannah Sheen's portfolio
 
-A React + TypeScript portfolio with a playful scrapbook style, built as a navigable set of 3D
-scenes (not one long scroll), an interactive cat-meme playground, a readiness-driven intro
-loader, project previews, career files, certificates, and a contact form.
+A React + TypeScript portfolio with a playful scrapbook style, natural page scrolling,
+an interactive cat-meme playground, a readiness-driven intro loader, project previews,
+career files, certificates, and a contact form.
 
 ## Development
 
@@ -14,41 +14,45 @@ npm run dev
 `npm run build` checks TypeScript and produces the frontend in `dist/`.
 `npm run preview` serves that production build locally.
 
-## Scenes and navigation
+## Layout and navigation
 
-- `src/App.tsx` owns scene content and routes between scenes (`home`, `about`, `experience`,
-  `projects`, `playground`, `skills`, `certificates`, `contact`) via `#hash` state, a header pill
-  nav, a right-edge scene-index dock, and floating prev/next scene buttons. Only the active
-  scene is mounted at a time.
-- `src/components/SceneStage.tsx` + `SceneStage.css` render the active scene with a 3D
-  depth/zoom transition (`motion/react` `AnimatePresence mode="wait"`), move focus to the new
-  scene's heading, keep inactive scenes `inert`, and drive the scroll-progress bar and parallax
-  variable from the scene's own internal scroll container.
+- `src/App.tsx` renders all eight sections in document order: `home`, `about`, `experience`,
+  `projects`, `playground`, `skills`, `certificates`, and `contact`. Wheel, touch, and keyboard
+  scrolling use the browser's document scroll, without scene switching or scroll snapping.
+- Header links are native hash anchors and remain optional shortcuts. The active link and
+  progress bar follow the page scroll; navigating does not unmount sections or clear form drafts.
+  Scroll reveals use the viewport, without moving keyboard focus.
+- The mobile menu is used through 980px and can scroll within short landscape viewports.
+  Sections have content-driven heights, fluid padding, and responsive grids. The contact
+  footer spans the full grid width; certificate cards stack in one column on phones.
 - `src/components/LoadingScreen.tsx` + `.css` is the initial intro: real progress from image
   decode + font readiness (not a fake timer), a 4.4s hard cap, an always-available "Skip intro"
   button, and an instant/static path under reduced motion. It renders once per session
-  (`sessionStorage`), outside the scene it is covering.
-- `src/components/MemeArcade.tsx` + `.css` is the `playground` scene: a draggable/keyboard-
+  (`sessionStorage`), above the page it is covering.
+- `src/components/MemeArcade.tsx` + `.css` is the `playground` section: a draggable/keyboard-
   turnable 3D cat card, boop/spin/reset controls, a reaction deck, and a credits footer. It mixes
-  2026 candidate memes (Black Cat Clapping, Drooling Cat, Crowd of Drooling Cats — shown as
+  2026 candidate memes (Black Cat Clapping, Drooling Cat, Crowd of Drooling Cats, shown as
   credited "interactive stickers," not the original videos) with the site's existing classic GIFs.
   Research and source links: `research/cat-memes-2026.md`.
-- `src/index.css` owns the palette, the fixed-height app shell (`html`/`body` no longer scroll;
-  each scene scrolls internally), responsive layouts, staggered hero entrances, scroll reveals,
-  and hover interactions.
+- `src/index.css` owns responsive sizing, typography, staggered hero entrances, scroll reveals,
+  and hover interactions. Only the loader and open dialogs temporarily lock document scrolling.
+  Reduced motion disables decorative animations and smooth anchor scrolling and swaps GIFs
+  for still images, including when the preference changes while the page is open.
 
 ## Manual UI checks
 
-Check desktop and mobile navigation (header pills, scene dock, scene pager, mobile menu), the
-intro loader's progress/skip/reduced-motion paths, all five projects in both directions, rapid
-project switching followed by opening/closing case notes, experience expansion/collapse, and
-certificate dialogs. Confirm the resume link and required contact fields remain available.
+Scroll from home through contact using the wheel, touch, and keyboard without clicking navigation.
+Check header anchors, browser back/forward, direct hash entry, and the mobile menu in portrait
+and landscape. Test the loader's progress/skip/reduced-motion paths, project browsing and case
+notes, experience expansion/collapse, and certificate dialogs. Closing a dialog must restore
+page scrolling. Confirm the resume link works and contact drafts survive anchor navigation.
 
-In the Cat Lab scene, check Boop/Spin/Prev/Next/Reset, keyboard turning (arrow keys on the
+In the Cat Lab section, check Boop/Spin/Prev/Next/Reset, keyboard turning (arrow keys on the
 focused stage), the Instagram embed opt-in (must not auto-load), and that Pause truly stops all
 running animations, including when an animated GIF is the active reaction.
 
-Check widths from 320px through desktop and toggle reduced motion both before and after loading
-the page. No page-wide horizontal scrolling or hidden selected-project preview should remain.
+Check widths 320, 390, 768, 820, 1024, 1440, and 1920px and toggle reduced motion before and
+after loading. Check for horizontal overflow, clipped text, overlapping content, and oversized
+gaps. All eight sections must remain mounted, with no nested vertical section scrollers.
 
 Frontend checks do not send email or verify delivery through the contact API.

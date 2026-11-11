@@ -411,7 +411,7 @@ export default function MemeArcade({ reduceMotion }: Props) {
     .join(' ')
 
   return (
-    <section ref={rootRef} className={rootClass} aria-labelledby="playground-title">
+    <section id="playground" ref={rootRef} className={rootClass} aria-labelledby="playground-title">
       <div className="cat-lab__ticker" aria-hidden="true">
         <div className="cat-lab__ticker-track">
           {Array.from({ length: 8 }, (_, i) => (

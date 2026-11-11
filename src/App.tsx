@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { Fragment, useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import type { FormEvent, PointerEvent } from 'react'
 import { AnimatePresence, motion } from 'motion/react'
 import LoadingScreen from './components/LoadingScreen'
-import SceneStage from './components/SceneStage'
 import MemeArcade from './components/MemeArcade'
 import portrait from './assets/images/for_lanyard.jpg'
 import resume from './assets/resume/Hannah-Sheen-Resume.pdf'
@@ -57,7 +56,7 @@ type Experience = {
   article?: string
 }
 
-const SCENES = [
+const SECTIONS = [
   { id: 'home', label: 'home' },
   { id: 'about', label: 'about' },
   { id: 'experience', label: 'experience' },
@@ -68,17 +67,7 @@ const SCENES = [
   { id: 'contact', label: 'contact' },
 ] as const
 
-type SceneId = (typeof SCENES)[number]['id']
-const SCENE_IDS = SCENES.map((scene) => scene.id) as string[]
-
-function isSceneId(value: string): value is SceneId {
-  return SCENE_IDS.includes(value)
-}
-
-function sceneFromHash(): SceneId {
-  const hash = window.location.hash.replace('#', '')
-  return isSceneId(hash) ? hash : 'home'
-}
+type SectionId = (typeof SECTIONS)[number]['id']
 
 const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
 
@@ -346,7 +335,7 @@ function App() {
       return false
     }
   })
-  const [activeScene, setActiveSceneState] = useState<SceneId>(() => sceneFromHash())
+  const [activeSection, setActiveSection] = useState<SectionId>('home')
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeProject, setActiveProject] = useState<Project | null>(null)
   const [activeCertificate, setActiveCertificate] = useState<Certificate | null>(null)
@@ -356,7 +345,6 @@ function App() {
   const [formStatus, setFormStatus] = useState('')
 
   const featuredProject = projects[featuredProjectIndex]
-  const sceneIndex = SCENES.findIndex((scene) => scene.id === activeScene)
 
   const handleIntroComplete = useCallback(() => {
     setIntroDone(true)
@@ -367,28 +355,92 @@ function App() {
     }
   }, [])
 
-  const goToScene = useCallback((scene: SceneId) => {
-    setActiveSceneState((current) => {
-      if (current === scene) return current
-      if (window.location.hash !== `#${scene}`) {
-        window.history.pushState(null, '', `#${scene}`)
-      }
-      return scene
-    })
-    setMenuOpen(false)
-  }, [])
+  useEffect(() => {
+    if (!introDone) return
+    const target = SECTIONS.find(({ id }) => window.location.hash === `#${id}`)
+    const element = target && document.getElementById(target.id)
+    if (!element) return
+
+    let settleTimer = 0
+    let maxTimer = 0
+    const correct = () => {
+      element.scrollIntoView({ behavior: 'instant' })
+      window.clearTimeout(settleTimer)
+      settleTimer = window.setTimeout(stop, 400)
+    }
+    const stop = () => {
+      window.clearTimeout(settleTimer)
+      window.clearTimeout(maxTimer)
+      observer.disconnect()
+    }
+    const observer = new ResizeObserver(correct)
+    observer.observe(document.documentElement)
+    correct()
+    maxTimer = window.setTimeout(stop, 3000)
+    return stop
+  }, [introDone])
 
   useEffect(() => {
-    const handlePopState = () => setActiveSceneState(sceneFromHash())
-    window.addEventListener('popstate', handlePopState)
-    return () => window.removeEventListener('popstate', handlePopState)
-  }, [])
+    if (!introDone) return
+    const items = document.querySelectorAll<HTMLElement>('[data-reveal]')
+    const observer = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue
+        entry.target.classList.add('is-visible')
+        observer.unobserve(entry.target)
+      }
+    }, { threshold: 0, rootMargin: '0px 0px -24px 0px' })
+    items.forEach((item) => observer.observe(item))
+    return () => observer.disconnect()
+  }, [introDone])
+
+  useEffect(() => {
+    if (!introDone) return
+    const sections = SECTIONS.map(({ id }) => document.getElementById(id)!)
+    let frame = 0
+    const update = () => {
+      frame = 0
+      const range = document.documentElement.scrollHeight - window.innerHeight
+      const progress = range > 0 ? Math.min(1, Math.max(0, window.scrollY / range)) : 0
+      document.documentElement.style.setProperty('--scroll-progress', String(progress))
+      let current: SectionId = 'home'
+      for (let index = 0; index < sections.length; index++) {
+        if (sections[index].getBoundingClientRect().top <= window.innerHeight * 0.3) {
+          current = SECTIONS[index].id
+        }
+      }
+      setActiveSection(progress >= 0.999 ? 'contact' : current)
+    }
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(update)
+    }
+    const resizeObserver = new ResizeObserver(schedule)
+    resizeObserver.observe(document.getElementById('portfolio-content')!)
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    update()
+    return () => {
+      window.cancelAnimationFrame(frame)
+      resizeObserver.disconnect()
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+    }
+  }, [introDone])
+
+  const scrollLocked = !introDone || activeProject !== null || activeCertificate !== null
+  useEffect(() => {
+    if (!scrollLocked) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = previous }
+  }, [scrollLocked])
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         setActiveProject(null)
         setActiveCertificate(null)
+        setMenuOpen(false)
       }
     }
 
@@ -442,11 +494,11 @@ function App() {
     }
   }
 
-  const sceneContent = useMemo(() => {
-    switch (activeScene) {
+  const renderSection = (section: SectionId) => {
+    switch (section) {
       case 'home':
         return (
-          <section className="hero section-pad" aria-labelledby="hero-title">
+          <section id="home" className="hero section-pad" aria-labelledby="hero-title">
             <div className="hero-copy">
               <p className="eyebrow">Developer. Organizer. Professional tab hoarder.</p>
               <h1 id="hero-title">
@@ -459,9 +511,9 @@ function App() {
                 very specific cat memes.
               </p>
               <div className="hero-actions">
-                <button className="button button-primary" type="button" onClick={() => goToScene('projects')}>
+                <a className="button button-primary" href="#projects">
                   See my work <span className="button-arrow" aria-hidden="true">↗</span>
-                </button>
+                </a>
                 <a className="button button-secondary" href={resume} target="_blank" rel="noreferrer">
                   Open resume <span className="button-arrow" aria-hidden="true">↗</span>
                 </a>
@@ -489,16 +541,16 @@ function App() {
             </div>
             <div className="hero-footer">
               <p>Based in Cebu, Philippines</p>
-              <button type="button" onClick={() => goToScene('about')}>
+              <a href="#about">
                 A little more about me <span aria-hidden="true">↓</span>
-              </button>
+              </a>
             </div>
           </section>
         )
 
       case 'about':
         return (
-          <section className="about section-pad" aria-labelledby="about-title">
+          <section id="about" className="about section-pad" aria-labelledby="about-title">
             <div className="section-kicker" data-reveal>01 / about me</div>
             <div className="about-grid" data-reveal>
               <article className="paper paper-lavender">
@@ -529,7 +581,7 @@ function App() {
 
       case 'experience':
         return (
-          <section className="experience section-pad" aria-labelledby="experience-title">
+          <section id="experience" className="experience section-pad" aria-labelledby="experience-title">
             <div className="section-heading" data-reveal>
               <div>
                 <p className="section-kicker">02 / work log</p>
@@ -616,7 +668,7 @@ function App() {
 
       case 'projects':
         return (
-          <section className="projects section-pad" aria-labelledby="projects-title">
+          <section id="projects" className="projects section-pad" aria-labelledby="projects-title">
             <div className="motion-ticker" aria-hidden="true">
               <div className="motion-ticker-track">
                 <span>build it clean</span><span>ship it kindly</span><span>ask the cat reviewer</span>
@@ -723,7 +775,7 @@ function App() {
                   <p className="section-kicker">live reaction feed</p>
                   <h2 id="brainrot-title">Current brain activity</h2>
                 </div>
-                <p>Three cats. Zero useful thoughts. Want more? <button type="button" className="brainrot-link" onClick={() => goToScene('playground')}>Visit the cat lab ↗</button></p>
+                <p>Three cats. Zero useful thoughts. Want more? <a className="brainrot-link" href="#playground">Visit the cat lab ↗</a></p>
               </div>
               <div className="brainrot-grid">
                 {brainrotCats.map((cat) => (
@@ -745,7 +797,7 @@ function App() {
 
       case 'skills':
         return (
-          <section className="skills section-pad" aria-labelledby="skills-title">
+          <section id="skills" className="skills section-pad" aria-labelledby="skills-title">
             <p className="section-kicker" data-reveal>04 / toolkit</p>
             <h2 id="skills-title" data-reveal>Things currently living in my brain</h2>
             <div className="skill-grid">
@@ -763,7 +815,7 @@ function App() {
 
       case 'certificates':
         return (
-          <section className="certificates section-pad" aria-labelledby="certificates-title">
+          <section id="certificates" className="certificates section-pad" aria-labelledby="certificates-title">
             <div className="section-heading" data-reveal>
               <div>
                 <p className="section-kicker">05 / proof I did the homework</p>
@@ -803,7 +855,7 @@ function App() {
 
       case 'contact':
         return (
-          <section className="contact section-pad" aria-labelledby="contact-title">
+          <section id="contact" className="contact section-pad" aria-labelledby="contact-title">
             <div className="contact-intro" data-reveal>
               <p className="section-kicker">06 / say hello</p>
               <h2 id="contact-title">Have a good idea? Send it my way.</h2>
@@ -838,12 +890,12 @@ function App() {
               <p className="form-status" aria-live="polite">{formStatus}</p>
             </form>
 
-            <footer className="scene-footer">
+            <footer className="site-footer">
               <p>Built by Hannah, supervised by cats.</p>
               <small>
                 Animated cats from <a href="https://commons.wikimedia.org/wiki/File:Wikipedia_iOS_Sticker_-_CatLaptop_2.gif" target="_blank" rel="noreferrer">Wikimedia Foundation</a>, <a href="https://tenor.com/view/cat-typing-typing-on-computer-computer-work-laptop-gif-3735158436717612412" target="_blank" rel="noreferrer">Tikvah4u2</a>, <a href="https://giphy.com/gifs/typing-work-stress-corporate-slave-QUGNjCVa2XFVlmZBYR" target="_blank" rel="noreferrer">Nope Cat</a>, <a href="https://tenor.com/view/judgemental-cat-judging-cat-funny-cat-cat-judging-cat-meme-gif-12106025989505123170" target="_blank" rel="noreferrer">m_toro</a>, <a href="https://tenor.com/view/cat-spin-oiia-spinning-cat-oiia-very-fast-spin-oiia-fast-spinning-cat-gif-11002452809956994839" target="_blank" rel="noreferrer">oiiaoiiaSpinningCAT</a>, <a href="https://tenor.com/view/banana-banana-cat-cat-sad-crying-gif-14374695503752541462" target="_blank" rel="noreferrer">wmma</a>, and <a href="https://tenor.com/view/huh-cat-meme-what-ya-doing-huh-cat-in-camera-cat-stare-gif-14539023150639272424" target="_blank" rel="noreferrer">meoshavsmeosha</a> via Tenor and GIPHY. 2026 cat-lab stickers credited on that page.
               </small>
-              <button type="button" onClick={() => goToScene('home')}>Back to home</button>
+              <a href="#home">Back to top</a>
             </footer>
           </section>
         )
@@ -851,16 +903,7 @@ function App() {
       default:
         return null
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    activeScene,
-    catNote,
-    featuredExperienceIndex,
-    featuredProjectIndex,
-    featuredProject,
-    formStatus,
-    reduceMotion,
-  ])
+  }
 
   return (
     <div className="site-shell">
@@ -871,69 +914,37 @@ function App() {
       <div className="scroll-progress" aria-hidden="true"><span /></div>
 
       <header className="site-header" inert={!introDone}>
-        <button className="brand" type="button" onClick={() => goToScene('home')} aria-label="Hannah Sheen home">
+        <a className="brand" href="#home" onClick={() => setMenuOpen(false)} aria-label="Hannah Sheen home">
           HS<span>.</span>
-        </button>
+        </a>
         <button
           className="menu-button"
           type="button"
           aria-label="Toggle navigation"
           aria-expanded={menuOpen}
+          aria-controls="main-navigation"
           onClick={() => setMenuOpen((open) => !open)}
         >
           {menuOpen ? 'close' : 'menu'}
         </button>
-        <nav className={menuOpen ? 'site-nav is-open' : 'site-nav'} aria-label="Main navigation">
-          {SCENES.map((scene) => (
-            <button
-              key={scene.id}
-              type="button"
-              className={scene.id === activeScene ? 'is-active' : ''}
-              aria-current={scene.id === activeScene ? 'page' : undefined}
-              onClick={() => goToScene(scene.id)}
+        <nav id="main-navigation" className={menuOpen ? 'site-nav is-open' : 'site-nav'} aria-label="Main navigation">
+          {SECTIONS.map((section) => (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className={section.id === activeSection ? 'is-active' : ''}
+              aria-current={section.id === activeSection ? 'location' : undefined}
+              onClick={() => setMenuOpen(false)}
             >
-              {scene.label}
-            </button>
+              {section.label}
+            </a>
           ))}
         </nav>
       </header>
 
-      <nav className="scene-dock" aria-label="Scene index" inert={!introDone}>
-        {SCENES.map((scene) => (
-          <button
-            key={scene.id}
-            type="button"
-            data-label={scene.label}
-            className={scene.id === activeScene ? 'is-active' : ''}
-            aria-label={`Go to ${scene.label}`}
-            aria-current={scene.id === activeScene ? 'page' : undefined}
-            onClick={() => goToScene(scene.id)}
-          />
-        ))}
-      </nav>
-
-      <div className="scene-pager" inert={!introDone}>
-        <button
-          type="button"
-          aria-label="Previous scene"
-          disabled={sceneIndex <= 0}
-          onClick={() => sceneIndex > 0 && goToScene(SCENES[sceneIndex - 1].id)}
-        >
-          ↑
-        </button>
-        <button
-          type="button"
-          aria-label="Next scene"
-          disabled={sceneIndex >= SCENES.length - 1}
-          onClick={() => sceneIndex < SCENES.length - 1 && goToScene(SCENES[sceneIndex + 1].id)}
-        >
-          ↓
-        </button>
-      </div>
-
-      <SceneStage scene={activeScene} reduceMotion={reduceMotion} ready={introDone}>
-        {sceneContent}
-      </SceneStage>
+      <main id="portfolio-content" inert={!introDone}>
+        {SECTIONS.map(({ id }) => <Fragment key={id}>{renderSection(id)}</Fragment>)}
+      </main>
 
       {activeProject && (
         <div className="modal-backdrop" role="presentation" onMouseDown={() => setActiveProject(null)}>
