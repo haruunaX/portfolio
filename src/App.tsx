@@ -397,6 +397,7 @@ function App() {
   useEffect(() => {
     if (!introDone) return
     const sections = SECTIONS.map(({ id }) => document.getElementById(id)!)
+    const projectsIndex = SECTIONS.findIndex(({ id }) => id === 'projects')
     let frame = 0
     const update = () => {
       frame = 0
@@ -410,6 +411,16 @@ function App() {
         }
       }
       setActiveSection(progress >= 0.999 ? 'contact' : current)
+
+      if (reduceMotion) {
+        document.documentElement.style.setProperty('--project-parallax', '0px')
+      } else {
+        const rect = sections[projectsIndex].getBoundingClientRect()
+        const span = window.innerHeight / 2 + rect.height / 2
+        const centered = rect.top + rect.height / 2 - window.innerHeight / 2
+        const offset = span > 0 ? Math.max(-1, Math.min(1, centered / span)) : 0
+        document.documentElement.style.setProperty('--project-parallax', `${(offset * -34).toFixed(2)}px`)
+      }
     }
     const schedule = () => {
       if (!frame) frame = window.requestAnimationFrame(update)
@@ -425,7 +436,7 @@ function App() {
       window.removeEventListener('scroll', schedule)
       window.removeEventListener('resize', schedule)
     }
-  }, [introDone])
+  }, [introDone, reduceMotion])
 
   const scrollLocked = !introDone || activeProject !== null || activeCertificate !== null
   useEffect(() => {
