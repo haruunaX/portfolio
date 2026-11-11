@@ -216,6 +216,8 @@ const skillGroups = [
   },
 ]
 
+const skillKeywords = Array.from(new Set(skillGroups.flatMap((group) => group.items)))
+
 const certificates: Certificate[] = [
   {
     title: 'ASEAN AI Workshop',
@@ -811,6 +813,12 @@ function App() {
           <section id="skills" className="skills section-pad" aria-labelledby="skills-title">
             <p className="section-kicker" data-reveal>04 / toolkit</p>
             <h2 id="skills-title" data-reveal>Things currently living in my brain</h2>
+            <div className="skill-ticker" aria-hidden="true">
+              <div className="skill-ticker-track">
+                {skillKeywords.map((item) => <span key={item}>{item}</span>)}
+                {skillKeywords.map((item) => <span key={`dup-${item}`}>{item}</span>)}
+              </div>
+            </div>
             <div className="skill-grid">
               {skillGroups.map((group, index) => (
                 <article className={`skill-note note-${index + 1}`} key={group.title} data-reveal>

@@ -1177,7 +1177,7 @@ button.cat-card {
 .projects {
   position: relative;
   isolation: isolate;
-  overflow: clip;
+  overflow-y: clip;
   max-width: none;
   padding-right: max(2rem, calc((100vw - 1180px) / 2));
   padding-left: max(2rem, calc((100vw - 1180px) / 2));
@@ -1841,23 +1841,45 @@ button.cat-card {
   box-shadow: 8px 8px 0 var(--yellow);
 }
 
-.motion-ticker {
-  margin: 0 0 6rem;
+.motion-ticker,
+.skill-ticker {
+  width: 100vw;
+  margin-top: 0;
+  margin-right: calc(50% - 50vw);
+  margin-bottom: 6rem;
+  margin-left: calc(50% - 50vw);
   overflow: hidden;
   border-top: var(--line);
   border-bottom: var(--line);
+}
+
+.motion-ticker {
   color: var(--paper-light);
   background: var(--red);
   transform: rotate(-0.5deg) scale(1.02);
 }
 
-.motion-ticker-track {
+.skill-ticker {
+  margin-top: 2.5rem;
+  color: var(--paper-light);
+  background: var(--blue);
+  transform: rotate(0.4deg) scale(1.02);
+}
+
+.motion-ticker-track,
+.skill-ticker-track {
   display: flex;
   width: max-content;
   animation: ticker-move 20s linear infinite;
 }
 
-.motion-ticker span {
+.skill-ticker-track {
+  animation-duration: 28s;
+  animation-direction: reverse;
+}
+
+.motion-ticker span,
+.skill-ticker span {
   padding: 0.85rem 2.3rem;
   font-family: 'Bowlby One SC', sans-serif;
   font-size: clamp(1rem, 2vw, 1.45rem);
@@ -1865,7 +1887,8 @@ button.cat-card {
   text-transform: uppercase;
 }
 
-.motion-ticker span::after {
+.motion-ticker span::after,
+.skill-ticker span::after {
   margin-left: 2.3rem;
   content: '/';
   color: var(--yellow);
