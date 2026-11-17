@@ -1,0 +1,190 @@
+.experience-media {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  font-family: var(--font-body);
+  color: var(--text);
+}
+
+.experience-media__figure {
+  margin: 0;
+  min-width: 0;
+}
+
+/* Shared 4:3 frame. Carries the layoutId, so it never gets a CSS transform. */
+.experience-media__frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--card);
+  box-shadow: var(--elev-1);
+}
+
+/* Hairline border and top highlight drawn over the image. */
+.experience-media__frame::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 1px rgb(43 30 23 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.5);
+}
+
+.experience-media__image {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+}
+
+/* Cover: the whole photo, over a blurred copy of itself. */
+.experience-media__frame--cover .experience-media__image {
+  object-fit: contain;
+}
+
+.experience-media__backdrop {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(18px) saturate(1.1);
+  opacity: 0.85;
+  transform: scale(1.2);
+}
+
+/* Thumbnails: cropped to fill. */
+.experience-media__frame--thumb .experience-media__image,
+.experience-media__frame--static .experience-media__image {
+  object-fit: cover;
+}
+
+.experience-media__caption {
+  margin: 10px 2px 0;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+/* Thumbnail strip */
+.experience-media__strip {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.experience-media__thumb-cell {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.experience-media__thumb {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  transition: filter 0.2s var(--ease-out);
+}
+
+.experience-media__thumb:hover {
+  filter: brightness(1.05) saturate(1.05);
+}
+
+.experience-media__thumb:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.experience-media__thumb--selected {
+  cursor: default;
+}
+
+.experience-media__thumb--selected:hover {
+  filter: none;
+}
+
+/* Selected thumbnail: Lagoon ring drawn inside the frame so it never overflows the strip. */
+.experience-media__thumb--selected .experience-media__frame::after {
+  box-shadow:
+    inset 0 0 0 2px var(--accent),
+    inset 0 0 0 4px var(--card);
+}
+
+/* No photos: monogram tile */
+.experience-media__monogram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  padding: 16px;
+  box-sizing: border-box;
+  text-align: center;
+  border-radius: var(--radius-md);
+  background: linear-gradient(145deg, var(--page) 0%, rgb(242 169 59 / 0.38) 100%);
+  box-shadow:
+    var(--elev-1),
+    inset 0 0 0 1px rgb(43 30 23 / 0.1);
+}
+
+.experience-media__initials {
+  font-family: var(--font-display);
+  font-size: clamp(2.5rem, 9vw, 4rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--text);
+}
+
+.experience-media__company {
+  max-width: 100%;
+  font-size: 0.8125rem;
+  line-height: 1.3;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+/* Development-only hint, absent from production builds. */
+.experience-media__hint {
+  margin: 0;
+  padding: 10px 12px;
+  border: 1px dashed rgb(43 30 23 / 0.3);
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+.experience-media__hint code {
+  font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
+  font-size: 0.78rem;
+  color: var(--accent-deep);
+  word-break: break-all;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-media__thumb {
+    transition: none;
+  }
+}

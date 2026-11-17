@@ -1,27 +1,32 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
-import catLaptop from '../assets/cats/cat-laptop.jpg'
-import catSleepy from '../assets/cats/cat-sleepy.jpg'
+import { motion } from 'motion/react'
+import formalPortrait from '../assets/images/hannah-formal.jpg'
+import ciudadShot from '../assets/projects/ciudad.png'
+import lifewoodShot from '../assets/projects/lifewood-website.png'
+import { FADE, MORPH } from '../lib/motion'
+import BadgeFace from './BadgeFace'
 import './LoadingScreen.css'
 
 interface LoadingScreenProps {
-  /** Fired exactly once, when the intro has finished leaving (ready, timed out, or skipped). */
+  /** Fired exactly once, at the START of the exit (ready, timed out, or skipped). */
   onComplete: () => void
-  /** Image URLs to load and decode before the intro releases. */
-  assets?: readonly string[]
   /** Static, instant intro with zero motion. */
   reduceMotion?: boolean
+  /** The front badge card flies into the hero (layoutId) instead of fading out with the rest. Defaults to false. */
+  handoff?: boolean
+  /** Extra image URLs to load and decode before the intro releases. */
+  assets?: readonly string[]
 }
 
 type ExitReason = 'ready' | 'timeout' | 'skip'
 
-/** Upper bound before the UI is released even if assets stall (plus EXIT_MS, stays under 5s). */
+/** Upper bound before the UI is released even if assets stall. */
 const MAX_WAIT_MS = 4400
 /** Brief floor so a fully cached start does not flash the loader for a single frame. */
 const MIN_VISIBLE_MS = 350
-const EXIT_MS = 360
 
 const FONTS_KEY = '__document-fonts__'
-const FONT_FACES = ['700 1em "DM Sans"', '1em "Bowlby One SC"', '600 1em "Caveat"']
+const FONT_FACES = ['600 1em "Fraunces"', '400 1em "DM Sans"', '700 1em "DM Sans"']
 const FONT_SAMPLE = 'Hannah Sheen HS 0123456789'
 
 /** Loads and decodes one image. Always settles (load, decode, or error). Returns cleanup. */
@@ -102,8 +107,9 @@ const STAGE_LABEL: Record<ExitReason | 'loading', string> = {
 
 export default function LoadingScreen({
   onComplete,
-  assets = [],
   reduceMotion = false,
+  handoff = false,
+  assets = [],
 }: LoadingScreenProps) {
   const titleId = useId()
   const skipRef = useRef<HTMLButtonElement>(null)
@@ -121,7 +127,7 @@ export default function LoadingScreen({
   }, [onComplete])
 
   // Join by newline so a fresh-but-equal `assets` array never restarts loading.
-  const urlKey = [catLaptop, catSleepy, ...assets].join('\n')
+  const urlKey = [formalPortrait, ciudadShot, lifewoodShot, ...assets].join('\n')
   const urls = useMemo(() => Array.from(new Set(urlKey.split('\n'))).filter(Boolean), [urlKey])
 
   const total = urls.length + 1
@@ -157,24 +163,19 @@ export default function LoadingScreen({
     return () => window.clearTimeout(timer)
   }, [allSettled, forced])
 
-  // Exit sequence: optional anti-flash floor, short leave transition, then a single onComplete.
+  // Exit sequence: optional anti-flash floor, then a single onComplete at the START of the exit.
+  // The parent's AnimatePresence plays the exit animations and removes this component afterwards.
   useEffect(() => {
     if (!exit) return
     const elapsed = performance.now() - (startRef.current ?? performance.now())
     const wait = exit === 'ready' && !reduceMotion ? Math.max(0, MIN_VISIBLE_MS - elapsed) : 0
-    let leaveTimer: number | undefined
     const waitTimer = window.setTimeout(() => {
       setLeaving(true)
-      leaveTimer = window.setTimeout(() => {
-        if (completedRef.current) return
-        completedRef.current = true
-        onCompleteRef.current()
-      }, reduceMotion ? 0 : EXIT_MS)
+      if (completedRef.current) return
+      completedRef.current = true
+      onCompleteRef.current()
     }, wait)
-    return () => {
-      window.clearTimeout(waitTimer)
-      window.clearTimeout(leaveTimer)
-    }
+    return () => window.clearTimeout(waitTimer)
   }, [exit, reduceMotion])
 
   const skip = useCallback(() => {
@@ -203,40 +204,65 @@ export default function LoadingScreen({
     .filter(Boolean)
     .join(' ')
 
+  const fadeOut = { opacity: 0, transition: FADE }
+
   return (
-    <div
+    // No layoutRoot here: the shared badge must stay in the page's projection tree so the
+    // hero poster can pair with it. The handoff only runs from the top of the page.
+    <motion.div
       className={className}
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
       aria-busy={exit === null}
+      // While it leaves (the shared badge can take a moment to settle), the page is live again.
+      inert={leaving}
       style={{ '--intro-loader-progress': percent / 100 } as CSSProperties}
     >
-      <button ref={skipRef} type="button" className="intro-loader__skip" onClick={skip}>
+      <motion.div className="intro-loader__backdrop" aria-hidden="true" exit={fadeOut} />
+
+      <motion.button
+        ref={skipRef}
+        type="button"
+        className="intro-loader__skip"
+        onClick={skip}
+        exit={fadeOut}
+      >
         Skip intro<span aria-hidden="true"> →</span>
-      </button>
+      </motion.button>
 
       <div className="intro-loader__inner">
         <div className="intro-loader__scene" aria-hidden="true">
-          <div className="intro-loader__camera">
-            <div className="intro-loader__stack">
-              <div className="intro-loader__card intro-loader__card--back">
-                <span className="intro-loader__tape" />
-              </div>
-              <figure className="intro-loader__card intro-loader__card--mid">
-                <img src={catSleepy} alt="" decoding="async" />
-                <figcaption>nap first</figcaption>
-              </figure>
-              <figure className="intro-loader__card intro-loader__card--front">
-                <img src={catLaptop} alt="" decoding="async" />
-                <figcaption>ship it</figcaption>
-              </figure>
-              <span className="intro-loader__stamp">HS</span>
-            </div>
+          <div className="intro-loader__deal intro-loader__deal--left">
+            <motion.div className="intro-loader__card intro-loader__card--back" exit={fadeOut}>
+              <img src={ciudadShot} alt="" decoding="async" draggable={false} />
+            </motion.div>
+          </div>
+          <div className="intro-loader__deal intro-loader__deal--right">
+            <motion.div className="intro-loader__card intro-loader__card--back" exit={fadeOut}>
+              <img src={lifewoodShot} alt="" decoding="async" draggable={false} />
+            </motion.div>
+          </div>
+          <div className="intro-loader__deal intro-loader__deal--front">
+            {/* No CSS transform animation here: this element carries the shared layoutId.
+                Keyed by handoff so a late "no handoff" swaps in a plain card instead of
+                editing a mounted shared element. */}
+            <motion.div
+              key={handoff ? 'handoff' : 'solo'}
+              className="intro-loader__front"
+              layoutId={handoff ? 'hero-badge' : undefined}
+              // Must differ from the hero poster's value: Motion skips a shared morph
+              // between members whose layoutDependency values are equal.
+              layoutDependency="intro-card"
+              transition={MORPH}
+              exit={handoff ? undefined : fadeOut}
+            >
+              <BadgeFace />
+            </motion.div>
           </div>
         </div>
 
-        <div className="intro-loader__copy">
+        <motion.div className="intro-loader__copy" exit={fadeOut}>
           <p className="intro-loader__kicker" aria-hidden="true">
             Hannah Sheen · portfolio
           </p>
@@ -263,8 +289,8 @@ export default function LoadingScreen({
               {percent}%
             </span>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   )
 }

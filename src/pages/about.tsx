@@ -3,26 +3,6 @@ import Shuffle from '../components/Shuffle'
 import Lanyard from '../components/Lanyard'
 import forLanyard from '../assets/images/for_lanyard.jpg'
 
-// Dynamic ID card name generation function
-function makeNameImage(): string {
-  const canvas = document.createElement('canvas')
-  canvas.width = 600
-  canvas.height = 800 
-  const ctx = canvas.getContext('2d')!
-  ctx.fillStyle = '#111827'
-  ctx.fillRect(0, 0, 600, 800)
-  ctx.fillStyle = '#ffffff'
-  ctx.font = 'bold 64px Manrope, system-ui, sans-serif'
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillText('Hannah', 300, 340)
-  ctx.fillText('Sheen', 300, 420)
-  ctx.fillText('Obejero', 300, 500)
-  return canvas.toDataURL()
-}
-
-const backImage = makeNameImage()
-
 export default function About() {
   const sectionRef = useRef<HTMLDivElement>(null)
   const [isAboutVisible, setIsAboutVisible] = useState(false)
@@ -59,14 +39,7 @@ export default function About() {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(99,102,241,0.02)_0%,transparent_75%)] pointer-events-none" />
         <div className="absolute inset-0 -mt-10 md:-mt-30 h-[110%]">
           {isAboutVisible ? (
-            <Lanyard 
-              position={[0, 0, 15]} 
-              gravity={[0, -40, 0]} 
-              frontImage={forLanyard} 
-              backImage={backImage} 
-              imageFit="contain" 
-              cardName="Hannah Sheen Obejero" 
-            />
+            <Lanyard portrait={forLanyard} active={isAboutVisible} />
           ) : (
             <div className="w-full h-full bg-[#030712]" />
           )}
