@@ -1,0 +1,61 @@
+/* The wrapper clips the tilted ribbon, so the page never gets wider. No 100vw. */
+.marquee {
+  width: 100%;
+  overflow: hidden;
+  padding-block: clamp(1.4rem, 3vw, 2.2rem);
+  /* Work (cobalt) above, Experience (ink) below. */
+  background: linear-gradient(to bottom, var(--cobalt) 50%, var(--ink) 50%);
+}
+
+.marquee__ribbon {
+  width: 120%;
+  margin-inline: -10%;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--ink);
+  background: var(--sun);
+  border-block: 3px solid var(--ink);
+  box-shadow: 0 18px 34px -18px rgb(5 10 61 / 0.7);
+  transform: rotate(-2deg);
+}
+
+.marquee__track {
+  display: flex;
+  width: max-content;
+  padding-block: 0.9rem;
+  animation: marquee-run 40s linear infinite;
+}
+
+.marquee__word {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2rem;
+  padding-right: 2rem;
+  font-family: var(--display);
+  font-size: clamp(1.4rem, 3vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.marquee__word::after {
+  content: '\2726';
+  color: var(--orange);
+}
+
+@keyframes marquee-run {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.marquee--still .marquee__track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track {
+    animation-play-state: paused;
+  }
+}

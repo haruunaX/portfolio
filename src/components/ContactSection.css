@@ -1,0 +1,175 @@
+.contact {
+  padding-bottom: calc(1.5rem + var(--dock-clearance));
+  overflow-x: clip;
+}
+
+/* Cobalt glow behind the content. */
+.contact::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: '';
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 36rem at 88% 12%, rgb(18 54 224 / 0.7), transparent 65%),
+    radial-gradient(40rem 28rem at 4% 96%, rgb(18 54 224 / 0.45), transparent 70%);
+}
+
+.contact__grid {
+  display: grid;
+  gap: clamp(2rem, 5vw, 4rem);
+  align-items: start;
+}
+
+@media (min-width: 900px) {
+  .contact__grid {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  }
+}
+
+.contact__intro,
+.contact__form {
+  min-width: 0;
+}
+
+.contact__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 2rem;
+}
+
+.contact__magnet {
+  max-width: 100%;
+}
+
+.contact__arrow {
+  flex: none;
+}
+
+.contact__copy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem 1.1rem;
+  margin-top: 1.1rem;
+}
+
+.contact__address {
+  min-width: 0;
+  color: var(--light-dim);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+/* Form */
+.contact__form {
+  display: grid;
+  gap: 1.1rem;
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: rgb(12 22 96 / 0.55);
+  box-shadow: var(--shadow-2);
+}
+
+.contact__field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.contact__field label {
+  color: var(--light);
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.contact__field input,
+.contact__field textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 0.8rem 1rem;
+  border: 1px solid rgb(255 244 226 / 0.28);
+  border-radius: var(--r-sm);
+  color: var(--light);
+  background: var(--ink);
+  font-size: 1rem;
+  line-height: 1.5;
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.contact__field textarea {
+  min-height: 9rem;
+  resize: vertical;
+}
+
+.contact__field input:focus,
+.contact__field textarea:focus {
+  border-color: var(--sun);
+  outline: 3px solid var(--sun);
+  outline-offset: 2px;
+}
+
+.contact__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.2rem;
+}
+
+.contact__form .btn:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.contact__status {
+  flex: 1 1 14rem;
+  min-height: 1.5em;
+  min-width: 0;
+  margin: 0;
+  color: var(--light);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+/* Footer */
+.contact__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  margin-top: clamp(3rem, 7vw, 5rem);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.contact__foot p {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(1.15rem, 2.4vw, 1.6rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.contact__top {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--sun);
+  font-weight: 650;
+  text-underline-offset: 0.25em;
+}
+
+/* Spark layer: covers the section but never takes pointer events. */
+.contact__sparks {
+  position: absolute !important;
+  z-index: 5;
+  inset: 0;
+  width: auto !important;
+  height: auto !important;
+  pointer-events: none;
+}

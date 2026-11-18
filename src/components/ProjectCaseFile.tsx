@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent, MouseEvent, ReactNode, RefObject } from 'react'
 import { AnimatePresence, motion, useIsPresent } from 'motion/react'
+import { projects } from '../data/portfolio'
 import type { Project } from '../data/portfolio'
 import { projectGalleries } from '../data/projectGalleries'
 import { FADE, MORPH, STAGGER } from '../lib/motion'
@@ -9,6 +10,7 @@ import './ProjectCaseFile.css'
 type ProjectCaseFileProps = {
   project: Project | null
   onClose: () => void
+  onNavigate: (project: Project) => void
 }
 
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -83,12 +85,50 @@ function Reveal({
   )
 }
 
-function CaseFileDialog({ project, onClose }: { project: Project; onClose: () => void }) {
+function Chevron({ direction }: { direction: 'left' | 'right' }) {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+      <path
+        d={direction === 'left' ? 'M14.5 6l-6 6 6 6' : 'M9.5 6l6 6-6 6'}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function CaseFileDialog({
+  project,
+  onClose,
+  onNavigate,
+}: {
+  project: Project
+  onClose: () => void
+  onNavigate: (project: Project) => void
+}) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const scrollerRef = useRef<HTMLDivElement>(null)
+  // Only the project opened from its tile shares elements with the grid. After prev/next the
+  // dialog swaps content in place, because the other tiles may be off screen.
+  const [shared, setShared] = useState(true)
   useDialogFocus(closeRef)
 
   const gallery = projectGalleries[project.number] ?? []
   const titleId = `case-file-title-${project.number}`
+
+  const index = projects.findIndex((item) => item.number === project.number)
+  const canNavigate = index >= 0 && projects.length > 1
+  const previous = canNavigate ? projects[(index - 1 + projects.length) % projects.length] : null
+  const next = canNavigate ? projects[(index + 1) % projects.length] : null
+
+  function navigate(target: Project) {
+    setShared(false)
+    scrollerRef.current?.scrollTo({ top: 0 })
+    onNavigate(target)
+  }
 
   // The scroller sits above the backdrop, so a click on its empty area is a backdrop click.
   // Clicks on its scrollbar also target it and must not close the dialog.
@@ -98,6 +138,9 @@ function CaseFileDialog({ project, onClose }: { project: Project; onClose: () =>
     if (event.clientX - rect.left >= event.currentTarget.clientWidth) return
     onClose()
   }
+
+  // Swapped-in content (after prev/next) fades in itself; the first open is carried by the morph.
+  const swapIn = shared ? {} : { initial: { opacity: 0, y: 10 }, animate: { opacity: 1, y: 0 } }
 
   return (
     <div className="case-file">
@@ -109,7 +152,12 @@ function CaseFileDialog({ project, onClose }: { project: Project; onClose: () =>
         exit={{ opacity: 0 }}
         transition={FADE}
       />
-      <motion.div className="case-file__scroller" layoutScroll onClick={handleBackdropClick}>
+      <motion.div
+        ref={scrollerRef}
+        className="case-file__scroller"
+        layoutScroll
+        onClick={handleBackdropClick}
+      >
         <motion.article
           className="case-file__dialog"
           role="dialog"
@@ -128,21 +176,52 @@ function CaseFileDialog({ project, onClose }: { project: Project; onClose: () =>
           />
           <div className="case-file__content">
             <Reveal order={0} offset={0} className="case-file__bar">
-              <button ref={closeRef} type="button" className="case-file__close" aria-label="Close" onClick={onClose}>
-                <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                  <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                </svg>
-              </button>
+              <div className="case-file__controls">
+                {previous && (
+                  <button
+                    type="button"
+                    className="case-file__nav"
+                    aria-label="Previous project"
+                    title="Previous project"
+                    onClick={() => navigate(previous)}
+                  >
+                    <Chevron direction="left" />
+                  </button>
+                )}
+                {next && (
+                  <button
+                    type="button"
+                    className="case-file__nav"
+                    aria-label="Next project"
+                    title="Next project"
+                    onClick={() => navigate(next)}
+                  >
+                    <Chevron direction="right" />
+                  </button>
+                )}
+                <button
+                  ref={closeRef}
+                  type="button"
+                  className="case-file__close"
+                  aria-label="Close"
+                  onClick={onClose}
+                >
+                  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                    <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              </div>
             </Reveal>
 
-            <div className="case-file__top">
+            <div key={project.number} className="case-file__top">
               <div className="case-file__media">
                 <motion.div
                   className="case-file__frame"
-                  layoutId={`project-media-${project.number}`}
-                  layoutDependency={project.number}
+                  layoutId={shared ? `project-media-${project.number}` : undefined}
+                  layoutDependency="dialog"
                   transition={MORPH}
                   style={{ borderRadius: 20 }}
+                  {...swapIn}
                 >
                   <img
                     className="case-file__image"
@@ -152,25 +231,32 @@ function CaseFileDialog({ project, onClose }: { project: Project; onClose: () =>
                 </motion.div>
                 <motion.span
                   className="case-file__number"
-                  layoutId={`project-number-${project.number}`}
-                  layoutDependency={project.number}
+                  layoutId={shared ? `project-number-${project.number}` : undefined}
+                  layoutDependency="dialog"
                   transition={MORPH}
                   style={{ borderRadius: 999 }}
+                  {...swapIn}
                 >
                   {project.number}
                 </motion.span>
               </div>
 
               <div className="case-file__summary">
+                <Reveal order={0}>
+                  <span className="case-file__stamp" aria-hidden="true">
+                    Case file
+                  </span>
+                </Reveal>
                 <Reveal order={1}>
                   <p className="case-file__client">{project.client}</p>
                 </Reveal>
                 <motion.h2
                   id={titleId}
                   className="case-file__title"
-                  layoutId={`project-title-${project.number}`}
-                  layoutDependency={project.number}
+                  layoutId={shared ? `project-title-${project.number}` : undefined}
+                  layoutDependency="dialog"
                   transition={MORPH}
+                  {...swapIn}
                 >
                   {project.title}
                 </motion.h2>
@@ -204,14 +290,14 @@ function CaseFileDialog({ project, onClose }: { project: Project; onClose: () =>
             </div>
 
             {gallery.length > 0 && (
-              <Reveal order={5} className="case-file__gallery">
+              <Reveal key={project.number} order={5} className="case-file__gallery">
                 <h3 className="case-file__label">More screens</h3>
                 <div className="case-file__gallery-grid">
-                  {gallery.map((src, index) => (
+                  {gallery.map((src, galleryIndex) => (
                     <figure key={src} className="case-file__shot">
                       <img
                         src={src}
-                        alt={`${project.title} screenshot ${index + 2}`}
+                        alt={`${project.title} screenshot ${galleryIndex + 2}`}
                         loading="lazy"
                         decoding="async"
                       />
@@ -227,10 +313,12 @@ function CaseFileDialog({ project, onClose }: { project: Project; onClose: () =>
   )
 }
 
-export default function ProjectCaseFile({ project, onClose }: ProjectCaseFileProps) {
+export default function ProjectCaseFile({ project, onClose, onNavigate }: ProjectCaseFileProps) {
   return (
     <AnimatePresence>
-      {project ? <CaseFileDialog key={project.number} project={project} onClose={onClose} /> : null}
+      {project ? (
+        <CaseFileDialog key="case-file" project={project} onClose={onClose} onNavigate={onNavigate} />
+      ) : null}
     </AnimatePresence>
   )
 }

@@ -3,6 +3,7 @@ import type { ReactNode, RefObject } from 'react'
 import { motion } from 'motion/react'
 import formalPortrait from '../assets/images/hannah-formal.jpg'
 import { FADE, MORPH } from '../lib/motion'
+import { badgePosition } from '../lib/badgePosition'
 import BadgeFace from './BadgeFace'
 import './HeroBadge.css'
 
@@ -41,6 +42,15 @@ const STAGE_LABEL =
 const STRAP_FALLBACK_MS = 900
 /** Without a handoff the card only fades in; the strap follows once that is done. */
 const FADE_MS = 320
+
+/**
+ * Poster geometry, mirrored from HeroBadge.css: the card is 66% of the stage height, its top edge
+ * sits 32% down, and it is centred horizontally. Computed from the stage rect (not the card's own
+ * rect) so the loader handoff transform in flight never skews the measurement.
+ */
+const POSTER_TOP = 0.32
+const POSTER_HEIGHT = 0.66
+const POSTER_RATIO = 32 / 45
 
 let webglSupport: boolean | undefined
 
@@ -97,6 +107,46 @@ export default function HeroBadge({ introDone, reduceMotion, handoff }: HeroBadg
   const handleLanded = useCallback(() => setLanded(true), [])
   const handleCanvasFailure = useCallback(() => setCanvasFailed(true), [])
 
+  // Where the badge is on screen, for the sardine swarm. The canvas writes it every frame while
+  // live; otherwise the poster's centre is measured here, throttled to one read per animation frame.
+  useEffect(() => {
+    const stage = stageRef.current
+    if (!stage || !introDone || !inView) {
+      badgePosition.visible = false
+      return
+    }
+    if (live) return
+    let frame = 0
+    const measure = () => {
+      frame = 0
+      const rect = stage.getBoundingClientRect()
+      const cardHeight = rect.height * POSTER_HEIGHT
+      const cardWidth = cardHeight * POSTER_RATIO
+      badgePosition.x = rect.left + rect.width / 2
+      badgePosition.y = rect.top + rect.height * POSTER_TOP + cardHeight / 2
+      badgePosition.radius = Math.hypot(cardWidth, cardHeight) / 2
+      badgePosition.visible = true
+    }
+    const schedule = () => {
+      if (!frame) frame = window.requestAnimationFrame(measure)
+    }
+    measure()
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
+    return () => {
+      if (frame) window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+    }
+  }, [introDone, inView, live])
+
+  useEffect(
+    () => () => {
+      badgePosition.visible = false
+    },
+    [],
+  )
+
   // The strap fades in after the card lands; the timer covers instant (reduced motion) paths.
   useEffect(() => {
     if (!introDone) return
@@ -132,7 +182,11 @@ export default function HeroBadge({ introDone, reduceMotion, handoff }: HeroBadg
 
       <div className="hero-badge__hardware" aria-hidden="true">
         <span className="hero-badge__rail" />
-        <span className="hero-badge__strap" />
+        <span className="hero-badge__strap">
+          <span className="hero-badge__strap-text">
+            HANNAH SHEEN · CEBU · HANNAH SHEEN · CEBU · HANNAH SHEEN · CEBU · HANNAH SHEEN · CEBU ·
+          </span>
+        </span>
       </div>
 
       <div className="hero-badge__poster" aria-hidden="true">

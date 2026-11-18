@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
 import { motion } from 'motion/react'
 import formalPortrait from '../assets/images/hannah-formal.jpg'
-import ciudadShot from '../assets/projects/ciudad.png'
-import lifewoodShot from '../assets/projects/lifewood-website.png'
+import ciudadShot from '../assets/projects/ciudad.webp'
+import lifewoodShot from '../assets/projects/lifewood-website.webp'
 import { FADE, MORPH } from '../lib/motion'
 import BadgeFace from './BadgeFace'
 import './LoadingScreen.css'
@@ -26,7 +26,7 @@ const MAX_WAIT_MS = 4400
 const MIN_VISIBLE_MS = 350
 
 const FONTS_KEY = '__document-fonts__'
-const FONT_FACES = ['600 1em "Fraunces"', '400 1em "DM Sans"', '700 1em "DM Sans"']
+const FONT_FACES = ['700 1em "Bricolage Grotesque"', '400 1em Inter', '600 1em Inter']
 const FONT_SAMPLE = 'Hannah Sheen HS 0123456789'
 
 /** Loads and decodes one image. Always settles (load, decode, or error). Returns cleanup. */

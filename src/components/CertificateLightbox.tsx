@@ -145,7 +145,7 @@ function LightboxDialog({ selection, onClose }: { selection: CertificateSelectio
             <motion.img
               className="cert-lightbox__image"
               layoutId={`certificate-media-${index}`}
-              layoutDependency={index}
+              layoutDependency="dialog"
               transition={MORPH}
               style={{ borderRadius: 12 }}
               src={certificate.image}
@@ -160,7 +160,7 @@ function LightboxDialog({ selection, onClose }: { selection: CertificateSelectio
                 id={titleId}
                 className="cert-lightbox__title"
                 layoutId={`certificate-title-${index}`}
-                layoutDependency={index}
+                layoutDependency="dialog"
                 transition={MORPH}
               >
                 {certificate.title}

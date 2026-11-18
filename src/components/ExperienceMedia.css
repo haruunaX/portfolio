@@ -5,8 +5,8 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  font-family: var(--font-body);
-  color: var(--text);
+  font-family: var(--body);
+  color: var(--light);
 }
 
 .experience-media__figure {
@@ -21,8 +21,8 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: var(--card);
-  box-shadow: var(--elev-1);
+  background: var(--ink);
+  box-shadow: var(--shadow-1);
 }
 
 /* Hairline border and top highlight drawn over the image. */
@@ -33,8 +33,8 @@
   border-radius: inherit;
   pointer-events: none;
   box-shadow:
-    inset 0 0 0 1px rgb(43 30 23 / 0.1),
-    inset 0 1px 0 rgb(255 255 255 / 0.5);
+    inset 0 0 0 1px var(--line),
+    inset 0 1px 0 rgb(255 244 226 / 0.18);
 }
 
 .experience-media__image {
@@ -57,8 +57,8 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: blur(18px) saturate(1.1);
-  opacity: 0.85;
+  filter: blur(18px) saturate(1.2);
+  opacity: 0.7;
   transform: scale(1.2);
 }
 
@@ -72,7 +72,7 @@
   margin: 10px 2px 0;
   font-size: 0.8125rem;
   line-height: 1.4;
-  color: var(--text-muted);
+  color: var(--light-dim);
 }
 
 /* Thumbnail strip */
@@ -96,7 +96,7 @@
   width: 100%;
   padding: 0;
   border: 0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--r-sm);
   background: none;
   color: inherit;
   font: inherit;
@@ -105,11 +105,11 @@
 }
 
 .experience-media__thumb:hover {
-  filter: brightness(1.05) saturate(1.05);
+  filter: brightness(1.1) saturate(1.1);
 }
 
 .experience-media__thumb:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 3px solid var(--sun);
   outline-offset: 2px;
 }
 
@@ -121,11 +121,11 @@
   filter: none;
 }
 
-/* Selected thumbnail: Lagoon ring drawn inside the frame so it never overflows the strip. */
+/* Selected thumbnail: sun ring drawn inside the frame so it never overflows the strip. */
 .experience-media__thumb--selected .experience-media__frame::after {
   box-shadow:
-    inset 0 0 0 2px var(--accent),
-    inset 0 0 0 4px var(--card);
+    inset 0 0 0 2px var(--sun),
+    inset 0 0 0 4px var(--ink);
 }
 
 /* No photos: monogram tile */
@@ -140,27 +140,32 @@
   padding: 16px;
   box-sizing: border-box;
   text-align: center;
-  border-radius: var(--radius-md);
-  background: linear-gradient(145deg, var(--page) 0%, rgb(242 169 59 / 0.38) 100%);
+  border-radius: var(--r-md);
+  background: linear-gradient(145deg, var(--cobalt) 0%, var(--orange) 100%);
   box-shadow:
-    var(--elev-1),
-    inset 0 0 0 1px rgb(43 30 23 / 0.1);
+    var(--shadow-1),
+    inset 0 0 0 1px var(--line);
 }
 
 .experience-media__initials {
-  font-family: var(--font-display);
+  font-family: var(--display);
   font-size: clamp(2.5rem, 9vw, 4rem);
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
-  color: var(--text);
+  color: var(--light);
+  text-shadow: 0 2px 14px rgb(5 10 61 / 0.55);
 }
 
 .experience-media__company {
   max-width: 100%;
+  padding: 0.25rem 0.7rem;
+  border-radius: 999px;
+  background: var(--ink);
   font-size: 0.8125rem;
+  font-weight: 600;
   line-height: 1.3;
-  color: var(--text);
+  color: var(--light);
   overflow-wrap: anywhere;
 }
 
@@ -168,18 +173,18 @@
 .experience-media__hint {
   margin: 0;
   padding: 10px 12px;
-  border: 1px dashed rgb(43 30 23 / 0.3);
-  border-radius: var(--radius-sm);
+  border: 1px dashed rgb(255 244 226 / 0.5);
+  border-radius: var(--r-sm);
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--light);
   overflow-wrap: anywhere;
 }
 
 .experience-media__hint code {
   font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
   font-size: 0.78rem;
-  color: var(--accent-deep);
+  color: var(--sun);
   word-break: break-all;
 }
 

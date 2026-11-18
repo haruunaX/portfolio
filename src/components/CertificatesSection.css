@@ -1,0 +1,263 @@
+/* Certificates: a snap rail of proof cards on cobalt.
+   Everything is scoped under .certificates. The rail is the only horizontal scroller and sits
+   inside .wrap with min-width: 0, so it can never widen the page. */
+
+.certificates__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.certificates__head > div:first-child {
+  min-width: 0;
+}
+
+.certificates__arrows {
+  display: flex;
+  flex: none;
+  gap: 0.6rem;
+}
+
+.certificates__arrow-btn {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--sun);
+  box-shadow: var(--shadow-1);
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--ease-spring),
+    background-color 0.2s var(--ease-out),
+    opacity 0.2s var(--ease-out);
+}
+
+.certificates__arrow-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background: var(--light);
+}
+
+.certificates__arrow-btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.96);
+}
+
+.certificates__arrow-btn:disabled {
+  cursor: default;
+  opacity: 0.35;
+}
+
+/* Edge fades: only on the side that still has cards to reveal. */
+.certificates__viewport {
+  --fade-l: 0px;
+  --fade-r: 0px;
+  min-width: 0;
+  max-width: 100%;
+  margin-top: clamp(1.75rem, 4vw, 2.75rem);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade-l),
+    #000 calc(100% - var(--fade-r)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0,
+    #000 var(--fade-l),
+    #000 calc(100% - var(--fade-r)),
+    transparent 100%
+  );
+}
+
+.certificates__viewport[data-start='false'] {
+  --fade-l: clamp(1.5rem, 5vw, 4rem);
+}
+
+.certificates__viewport[data-end='false'] {
+  --fade-r: clamp(1.5rem, 5vw, 4rem);
+}
+
+.certificates__rail {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0;
+  /* Room for the card shadow and the tilt, which the rail's overflow would otherwise clip. */
+  padding: 1.75rem 0.5rem 2.25rem;
+  list-style: none;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 0.5rem;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  cursor: grab;
+  touch-action: pan-x pan-y;
+}
+
+.certificates__rail::-webkit-scrollbar {
+  display: none;
+}
+
+.certificates__rail--dragging {
+  cursor: grabbing;
+  scroll-snap-type: none;
+  user-select: none;
+}
+
+.certificates__item {
+  display: flex;
+  flex: 0 0 clamp(15.5rem, 76vw, 21.5rem);
+  scroll-snap-align: start;
+}
+
+.certificates__card {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --sheen-x: 50%;
+  --sheen-y: 50%;
+  --sheen-o: 0;
+  position: relative;
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.9rem 0.9rem 1.1rem;
+  border: 0;
+  border-radius: var(--r-md);
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  background: var(--light);
+  box-shadow: var(--shadow-1);
+  cursor: inherit;
+  transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+  transition:
+    transform 0.3s var(--ease-out),
+    box-shadow 0.3s var(--ease-out);
+}
+
+.certificates__card:hover {
+  box-shadow: var(--shadow-2);
+}
+
+/* Set from script right before a card opens, so the shared element morph starts from a flat box. */
+.certificates__card--flat {
+  transition: none;
+}
+
+.certificates__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at var(--sheen-x) var(--sheen-y), rgb(255 210 31 / 0.4), transparent 52%),
+    linear-gradient(115deg, transparent 30%, rgb(255 106 26 / 0.14) 48%, transparent 66%);
+  opacity: var(--sheen-o);
+  pointer-events: none;
+  transition: opacity 0.3s var(--ease-out);
+}
+
+.certificates__proof {
+  align-self: flex-start;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--sun);
+}
+
+.certificates__image {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid rgb(5 10 61 / 0.12);
+  background: rgb(5 10 61 / 0.06);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.certificates__meta {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.certificates__title {
+  display: block;
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+  overflow-wrap: break-word;
+}
+
+.certificates__issuer {
+  color: rgb(5 10 61 / 0.78);
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.certificates__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: auto;
+  padding-top: 0.55rem;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--orange);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
+}
+
+.certificates__arrow {
+  display: inline-block;
+  text-decoration: none;
+  transition: transform 0.25s var(--ease-spring);
+}
+
+.certificates__card:hover .certificates__arrow,
+.certificates__card:focus-visible .certificates__arrow {
+  transform: translateX(4px);
+}
+
+@media (max-width: 640px) {
+  .certificates__head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .certificates__card,
+  .certificates__sheen,
+  .certificates__arrow,
+  .certificates__arrow-btn {
+    transition: none;
+  }
+
+  .certificates__card {
+    transform: none;
+  }
+
+  .certificates__arrow-btn:hover:not(:disabled),
+  .certificates__arrow-btn:active:not(:disabled),
+  .certificates__card:hover .certificates__arrow,
+  .certificates__card:focus-visible .certificates__arrow {
+    transform: none;
+  }
+}

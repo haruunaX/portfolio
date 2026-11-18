@@ -25,7 +25,7 @@
   }
 }
 
-/* Sun glow behind the card, with a faint Seafoam reflection at the bottom left. */
+/* Warm Sun glow behind the card on the cobalt hero, with a faint Orange bounce at the bottom left. */
 .hero-badge__sun {
   position: absolute;
   top: 54%;
@@ -35,8 +35,8 @@
   height: 96cqh;
   transform: translate(-50%, -50%);
   background:
-    radial-gradient(closest-side at 32% 76%, rgb(143 217 207 / 0.28), rgb(143 217 207 / 0)),
-    radial-gradient(closest-side, rgb(242 169 59 / 0.32), rgb(242 169 59 / 0));
+    radial-gradient(closest-side at 32% 76%, rgb(255 106 26 / 0.26), rgb(255 106 26 / 0)),
+    radial-gradient(closest-side, rgb(255 210 31 / 0.3), rgb(255 210 31 / 0));
   pointer-events: none;
 }
 
@@ -62,10 +62,10 @@
   height: clamp(8px, 2.2cqh, 13px);
   transform: translateX(-50%);
   border-radius: 99px;
-  background: linear-gradient(180deg, #5a392c, var(--feature));
+  background: linear-gradient(180deg, #f4f6ff, #9aa4cf);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.28),
-    -2px 3px 6px rgb(43 30 23 / 0.28);
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    -2px 3px 6px rgb(5 10 61 / 0.4);
 }
 
 .hero-badge__strap {
@@ -76,15 +76,52 @@
   /* Runs behind the card down to its clip slot (card top at 32%, slot centre about 2.8% lower). */
   height: calc(34.8cqh - clamp(6px, 1.4cqh, 10px));
   transform: translateX(-50%);
+  overflow: hidden;
   opacity: 0;
   transition: opacity 0.4s var(--ease-out);
   background:
-    linear-gradient(90deg, rgb(255 248 239 / 0.22) 0 10%, transparent 10% 90%, rgb(13 75 87 / 0.35) 90%),
-    repeating-linear-gradient(180deg, transparent 0 7px, rgb(255 248 239 / 0.1) 7px 8px),
-    linear-gradient(180deg, #0f8985, var(--accent));
+    linear-gradient(90deg, rgb(255 244 226 / 0.28) 0 10%, transparent 10% 90%, rgb(5 10 61 / 0.3) 90%),
+    linear-gradient(180deg, #ff7f3e, var(--orange));
   box-shadow:
-    -2px 2px 5px rgb(43 30 23 / 0.2),
-    inset 1px 0 0 rgb(255 255 255 / 0.2);
+    -2px 2px 5px rgb(5 10 61 / 0.35),
+    inset 0 0 0 1px rgb(5 10 61 / 0.18);
+}
+
+/* Stitching along both edges, as on the 3D strap. */
+.hero-badge__strap::before,
+.hero-badge__strap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed rgb(5 10 61 / 0.4);
+}
+
+.hero-badge__strap::before {
+  left: 12%;
+}
+
+.hero-badge__strap::after {
+  right: 12%;
+}
+
+/* The same lettering as the 3D strap: light, uppercase, letter-spaced, running down the strap. */
+.hero-badge__strap-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4px;
+  color: var(--light);
+  font-family: var(--display);
+  font-size: clamp(5px, 1.5cqh, 10px);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  line-height: 1;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
 }
 
 .hero-badge[data-landed='true'] .hero-badge__strap {

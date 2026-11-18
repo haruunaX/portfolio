@@ -1,0 +1,268 @@
+/* Floating dock + "Jump to" chip. Everything is scoped under .nav-layer. */
+.nav-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  pointer-events: none;
+  transition: opacity 0.28s var(--ease-out, ease-out), visibility 0s;
+}
+.nav-layer[data-hidden],
+.nav-layer[data-typing] {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.28s var(--ease-out, ease-out), visibility 0s 0.28s;
+}
+
+.nav-dock-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  padding: 0 12px;
+  pointer-events: none;
+  animation: nav-rise 0.7s 0.2s var(--ease-out, ease-out) both;
+}
+@keyframes nav-rise {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+}
+
+.nav-dock {
+  position: relative;
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 66px;
+  padding: 10px 12px;
+  background: var(--sun);
+  border-radius: 26px;
+  box-shadow:
+    0 22px 40px -14px rgba(5, 10, 61, 0.7),
+    0 0 0 3px rgba(5, 10, 61, 0.16),
+    inset 0 -4px 0 rgba(184, 143, 0, 0.45);
+}
+
+.nav-item {
+  position: relative;
+  flex: none;
+  width: var(--nav-size, 46px);
+  height: var(--nav-size, 46px);
+  display: grid;
+  place-items: center;
+  border-radius: 30%;
+  background: rgba(255, 255, 255, 0.4);
+  color: var(--ink);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-item svg {
+  width: 50%;
+  height: 50%;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.nav-item:hover,
+.nav-item:focus-visible {
+  background: var(--light);
+}
+.nav-item:focus-visible {
+  outline: 3px solid var(--cobalt);
+  outline-offset: 2px;
+}
+.nav-item[aria-current='location'] {
+  background: var(--ink);
+  color: var(--sun);
+}
+.nav-item[aria-current='location']::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.nav-tip {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  left: 50%;
+  transform: translate(-50%, 6px) scale(0.9);
+  background: var(--ink);
+  color: var(--light);
+  font: 600 13px/1.2 var(--body);
+  padding: 6px 12px;
+  border-radius: 10px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.2s var(--ease-out, ease-out);
+}
+.nav-tip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border: 5px solid transparent;
+  border-top-color: var(--ink);
+}
+.nav-item:hover .nav-tip,
+.nav-item:focus-visible .nav-tip {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(1);
+}
+
+/* Label pill for the current section: phones only. */
+.nav-now {
+  display: none;
+}
+
+/* ---------- Jump to chip ---------- */
+.nav-chip {
+  position: absolute;
+  right: clamp(22px, 5vw, 84px);
+  bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 48px;
+  padding: 0 10px 0 16px;
+  border: 2px solid var(--sun);
+  border-radius: 999px;
+  background: rgba(5, 10, 61, 0.94);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--light);
+  font: 600 14px/1 var(--body);
+  cursor: pointer;
+  box-shadow: 0 14px 30px -14px rgba(5, 10, 61, 0.8);
+  transition: background 0.2s, transform 0.2s var(--ease-out, ease-out);
+}
+.nav-chip:hover {
+  background: var(--ink);
+  transform: translateY(-2px);
+}
+.nav-chip:focus-visible {
+  outline: 3px solid var(--light);
+  outline-offset: 3px;
+}
+.nav-chip-icon {
+  display: none;
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+}
+.nav-chip-keys {
+  display: inline-flex;
+  gap: 4px;
+}
+.nav-chip kbd {
+  font: 700 12px/1 var(--body);
+  background: var(--light);
+  color: var(--ink);
+  padding: 5px 8px;
+  border-radius: 7px;
+  box-shadow: 0 2px 0 rgba(5, 10, 61, 0.35);
+}
+
+/* ---------- Phones: bottom bar + round search button ---------- */
+@media (max-width: 760px) {
+  .nav-dock-zone {
+    bottom: 0;
+    padding: 0;
+  }
+  .nav-dock {
+    width: 100%;
+    height: auto;
+    align-items: center;
+    justify-content: space-around;
+    gap: 4px;
+    padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
+    border-radius: 22px 22px 0 0;
+    box-shadow:
+      0 -14px 30px -12px rgba(5, 10, 61, 0.6),
+      inset 0 3px 0 rgba(5, 10, 61, 0.16);
+  }
+  .nav-item {
+    flex: 1 1 0;
+    min-width: 44px;
+    max-width: 72px;
+    width: auto;
+    height: 44px;
+    border-radius: 16px;
+  }
+  .nav-item[aria-current='location']::after,
+  .nav-tip {
+    display: none;
+  }
+  .nav-now {
+    display: block;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--sun);
+    color: var(--ink);
+    font: 700 13px/1 var(--body);
+    padding: 8px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    pointer-events: none;
+    box-shadow: 0 8px 18px -8px rgba(5, 10, 61, 0.7), 0 0 0 2px var(--ink);
+    animation: nav-now-in 0.25s var(--ease-out, ease-out);
+  }
+  @keyframes nav-now-in {
+    from {
+      opacity: 0;
+      transform: translate(-50%, 6px);
+    }
+  }
+
+  .nav-chip {
+    top: max(12px, env(safe-area-inset-top, 0px));
+    right: 12px;
+    bottom: auto;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+  .nav-chip-icon {
+    display: block;
+  }
+  .nav-chip-text,
+  .nav-chip-keys {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-dock-zone,
+  .nav-now {
+    animation: none;
+  }
+  .nav-layer,
+  .nav-layer[data-hidden],
+  .nav-layer[data-typing],
+  .nav-item,
+  .nav-tip,
+  .nav-chip {
+    transition: none;
+  }
+}

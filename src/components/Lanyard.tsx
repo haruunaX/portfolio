@@ -16,6 +16,7 @@ import * as THREE from 'three';
 
 import cardGLB from '../assets/lanyard/card.glb';
 import { education } from '../data/portfolio';
+import { badgePosition } from '../lib/badgePosition';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -55,7 +56,7 @@ const FRONT_UV_RECT: UvRect = { x: 0, y: 0, w: 0.5, h: 0.755 };
 const BACK_UV_RECT: UvRect = { x: 0.5, y: 0, w: 0.5, h: 0.757 };
 
 /** Fonts that must be loaded before textures are painted, so no fallback face is baked in. */
-const FONT_LOADS = ['600 64px Fraunces', '400 32px "DM Sans"', '700 32px "DM Sans"'];
+const FONT_LOADS = ['700 64px "Bricolage Grotesque"', '400 32px Inter', '600 32px Inter'];
 const FONT_SAMPLE = 'Hannah Sheen HS Cum Laude CTU 2026 Cebu, Philippines';
 
 /**
@@ -68,16 +69,15 @@ const CAMERA_POSITION: [number, number, number] = [0, -0.42, 9.7];
 const GRAVITY: [number, number, number] = [0, -40, 0];
 
 const COLORS = {
-  shell: '#FFF8EF',
-  text: '#2B1E17',
-  muted: '#6B5A4E',
-  mango: '#F2A93B',
-  dusk: '#3A231B',
-  lagoon: '#0B7471',
-  seafoam: '#8FD9CF'
+  light: '#FFF4E2',
+  ink: '#050A3D',
+  inkMuted: '#3B4170',
+  cobalt: '#1236E0',
+  sun: '#FFD21F',
+  orange: '#FF6A1A'
 };
-const FONT_DISPLAY = 'Fraunces';
-const FONT_BODY = '"DM Sans"';
+const FONT_DISPLAY = '"Bricolage Grotesque"';
+const FONT_BODY = 'Inter';
 
 /** Design space for the card faces: 320 x 450, the same ratio as the DOM BadgeFace (32 : 45). */
 const DESIGN_W = 320;
@@ -90,6 +90,11 @@ const ang = new THREE.Vector3();
 const rot = new THREE.Vector3();
 const dir = new THREE.Vector3();
 const smoothTarget = new THREE.Vector3();
+/** Scratch vector for projecting the card to the screen; kept apart from `vec`, which the drag code uses. */
+const projected = new THREE.Vector3();
+
+/** Card footprint in world units (the collider): half-diagonal is the swarm's orbit radius. */
+const CARD_HALF_DIAGONAL = Math.hypot(0.8, 1.125);
 
 /** Resolves once the badge fonts have loaded (or failed); never rejects. */
 function loadBadgeFonts(): Promise<unknown> {
@@ -133,13 +138,13 @@ function paintSlot(ctx: CanvasRenderingContext2D, dark: boolean): void {
   const y = cqi(4.2);
   ctx.save();
   const fill = ctx.createLinearGradient(0, y, 0, y + h);
-  fill.addColorStop(0, dark ? 'rgba(0, 0, 0, 0.45)' : 'rgba(43, 30, 23, 0.22)');
-  fill.addColorStop(1, dark ? 'rgba(0, 0, 0, 0.25)' : 'rgba(43, 30, 23, 0.08)');
+  fill.addColorStop(0, dark ? 'rgba(0, 0, 0, 0.5)' : 'rgba(5, 10, 61, 0.5)');
+  fill.addColorStop(1, dark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(5, 10, 61, 0.28)');
   ctx.fillStyle = fill;
   ctx.beginPath();
   ctx.roundRect(x, y, w, h, h / 2);
   ctx.fill();
-  ctx.strokeStyle = dark ? 'rgba(255, 248, 239, 0.18)' : 'rgba(255, 255, 255, 0.8)';
+  ctx.strokeStyle = dark ? 'rgba(255, 244, 226, 0.2)' : 'rgba(255, 255, 255, 0.8)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.roundRect(x, y + 1, w, h, h / 2);
@@ -155,18 +160,18 @@ function paintFront(ctx: CanvasRenderingContext2D, rect: UvRect, portrait: Paint
   ctx.rect(0, 0, DESIGN_W, DESIGN_H);
   ctx.clip();
 
-  // Shell card, lit from the top.
+  // Light card, lit from the top.
   const bg = ctx.createLinearGradient(0, 0, 0, DESIGN_H);
   bg.addColorStop(0, '#FFFFFF');
-  bg.addColorStop(0.35, COLORS.shell);
-  bg.addColorStop(1, '#F6EAD9');
+  bg.addColorStop(0.35, COLORS.light);
+  bg.addColorStop(1, '#F7E7CB');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, DESIGN_W, DESIGN_H);
 
-  // Soft Mango glow at the top.
+  // Soft Sun glow at the top.
   const glow = ctx.createRadialGradient(DESIGN_W / 2, 0, 0, DESIGN_W / 2, 0, cqi(72));
-  glow.addColorStop(0, 'rgba(242, 169, 59, 0.42)');
-  glow.addColorStop(1, 'rgba(242, 169, 59, 0)');
+  glow.addColorStop(0, 'rgba(255, 210, 31, 0.36)');
+  glow.addColorStop(1, 'rgba(255, 210, 31, 0)');
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, DESIGN_W, cqi(46));
 
@@ -189,7 +194,7 @@ function paintFront(ctx: CanvasRenderingContext2D, rect: UvRect, portrait: Paint
     ctx.drawImage(portrait, px + (pw - dw) / 2, py, dw, portrait.height * scale);
   }
   ctx.restore();
-  ctx.strokeStyle = 'rgba(43, 30, 23, 0.12)';
+  ctx.strokeStyle = 'rgba(5, 10, 61, 0.14)';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.roundRect(px, py, pw, ph, cqi(5));
@@ -198,20 +203,20 @@ function paintFront(ctx: CanvasRenderingContext2D, rect: UvRect, portrait: Paint
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Name.
-  ctx.fillStyle = COLORS.text;
-  ctx.font = `600 ${cqi(9.4)}px ${FONT_DISPLAY}`;
-  ctx.fillText('Hannah Sheen', DESIGN_W / 2, cqi(83.4));
+  // Name, Ink, tightened like the DOM face (-0.02em).
+  ctx.fillStyle = COLORS.ink;
+  ctx.font = `700 ${cqi(9.4)}px ${FONT_DISPLAY}`;
+  drawSpaced(ctx, 'Hannah Sheen', DESIGN_W / 2, cqi(83.4), -cqi(9.4) * 0.02);
 
-  // Role, two lines.
-  ctx.fillStyle = COLORS.muted;
-  ctx.font = `400 ${cqi(4.1)}px ${FONT_BODY}`;
+  // Role, two lines, Cobalt.
+  ctx.fillStyle = COLORS.cobalt;
+  ctx.font = `600 ${cqi(4.1)}px ${FONT_BODY}`;
   ctx.fillText('IT Executive Assistant', DESIGN_W / 2, cqi(92.8));
   ctx.fillText('Full-stack developer', DESIGN_W / 2, cqi(98.3));
 
-  // Honors chip with a Mango star.
+  // Honors chip: solid Sun with an Ink star.
   const label = `${education.honors} · CTU ${education.year}`;
-  ctx.font = `700 ${cqi(3.5)}px ${FONT_BODY}`;
+  ctx.font = `600 ${cqi(3.5)}px ${FONT_BODY}`;
   const textWidth = ctx.measureText(label).width;
   const starSize = cqi(3.6);
   const gap = cqi(1.6);
@@ -221,22 +226,17 @@ function paintFront(ctx: CanvasRenderingContext2D, rect: UvRect, portrait: Paint
   const chipH = cqi(6);
   const chipX = DESIGN_W / 2 - chipW / 2;
   const chipY = cqi(104.4);
-  ctx.fillStyle = 'rgba(242, 169, 59, 0.2)';
+  ctx.fillStyle = COLORS.sun;
   ctx.beginPath();
   ctx.roundRect(chipX, chipY, chipW, chipH, chipH / 2);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(242, 169, 59, 0.5)';
-  ctx.beginPath();
-  ctx.roundRect(chipX, chipY, chipW, chipH, chipH / 2);
-  ctx.stroke();
-  ctx.fillStyle = COLORS.mango;
+  ctx.fillStyle = COLORS.ink;
   starPath(ctx, chipX + padLeft + starSize / 2, chipY + chipH / 2, starSize / 2);
   ctx.fill();
-  ctx.fillStyle = COLORS.text;
   ctx.textAlign = 'left';
   ctx.fillText(label, chipX + padLeft + starSize + gap, chipY + chipH / 2 + 1);
 
-  // Location with a Lagoon dot.
+  // Location with an Orange dot.
   ctx.font = `400 ${cqi(3.5)}px ${FONT_BODY}`;
   const place = 'Cebu, Philippines';
   const placeW = ctx.measureText(place).width;
@@ -244,28 +244,28 @@ function paintFront(ctx: CanvasRenderingContext2D, rect: UvRect, portrait: Paint
   const placeGap = cqi(1.8);
   const placeX = DESIGN_W / 2 - (dot + placeGap + placeW) / 2;
   const placeY = cqi(115.5);
-  ctx.fillStyle = 'rgba(11, 116, 113, 0.18)';
+  ctx.fillStyle = 'rgba(255, 106, 26, 0.22)';
   ctx.beginPath();
   ctx.arc(placeX + dot / 2, placeY, dot / 2 + cqi(0.6), 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = COLORS.lagoon;
+  ctx.fillStyle = COLORS.orange;
   ctx.beginPath();
   ctx.arc(placeX + dot / 2, placeY, dot / 2, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = COLORS.muted;
+  ctx.fillStyle = COLORS.inkMuted;
   ctx.fillText(place, placeX + dot + placeGap, placeY + 1);
 
-  // Lagoon band with the HS monogram.
+  // Ink band with the Sun HS monogram.
   const bandY = DESIGN_H - cqi(15);
-  ctx.fillStyle = COLORS.lagoon;
+  ctx.fillStyle = COLORS.ink;
   ctx.fillRect(0, bandY, DESIGN_W, cqi(15));
-  ctx.fillStyle = COLORS.mango;
+  ctx.fillStyle = COLORS.sun;
   ctx.fillRect(0, bandY, DESIGN_W, cqi(0.8));
-  ctx.fillStyle = 'rgba(143, 217, 207, 0.5)';
+  ctx.fillStyle = 'rgba(255, 210, 31, 0.45)';
   ctx.fillRect(cqi(18), bandY + cqi(7.9), cqi(22), 1);
   ctx.fillRect(cqi(60), bandY + cqi(7.9), cqi(22), 1);
-  ctx.fillStyle = COLORS.shell;
-  ctx.font = `600 ${cqi(6.4)}px ${FONT_DISPLAY}`;
+  ctx.fillStyle = COLORS.sun;
+  ctx.font = `700 ${cqi(6.4)}px ${FONT_DISPLAY}`;
   ctx.textAlign = 'center';
   drawSpaced(ctx, 'HS', DESIGN_W / 2, bandY + cqi(8), cqi(0.8));
 
@@ -280,11 +280,11 @@ function paintBack(ctx: CanvasRenderingContext2D, rect: UvRect): void {
   ctx.rect(0, 0, DESIGN_W, DESIGN_H);
   ctx.clip();
 
-  ctx.fillStyle = COLORS.dusk;
+  ctx.fillStyle = COLORS.ink;
   ctx.fillRect(0, 0, DESIGN_W, DESIGN_H);
   const glow = ctx.createRadialGradient(DESIGN_W / 2, 0, 0, DESIGN_W / 2, 0, cqi(80));
-  glow.addColorStop(0, 'rgba(143, 217, 207, 0.16)');
-  glow.addColorStop(1, 'rgba(143, 217, 207, 0)');
+  glow.addColorStop(0, 'rgba(18, 54, 224, 0.5)');
+  glow.addColorStop(1, 'rgba(18, 54, 224, 0)');
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, DESIGN_W, cqi(60));
 
@@ -296,48 +296,48 @@ function paintBack(ctx: CanvasRenderingContext2D, rect: UvRect): void {
   // HS monogram medallion.
   const cx = DESIGN_W / 2;
   const cy = cqi(27);
-  ctx.fillStyle = COLORS.lagoon;
+  ctx.fillStyle = COLORS.sun;
   ctx.beginPath();
   ctx.arc(cx, cy, cqi(12), 0, Math.PI * 2);
   ctx.fill();
-  ctx.strokeStyle = 'rgba(143, 217, 207, 0.55)';
+  ctx.strokeStyle = 'rgba(255, 210, 31, 0.55)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.arc(cx, cy, cqi(14), 0, Math.PI * 2);
   ctx.stroke();
-  ctx.fillStyle = COLORS.shell;
-  ctx.font = `600 ${cqi(9)}px ${FONT_DISPLAY}`;
+  ctx.fillStyle = COLORS.ink;
+  ctx.font = `700 ${cqi(9)}px ${FONT_DISPLAY}`;
   drawSpaced(ctx, 'HS', cx, cy + 2, cqi(0.8));
 
   // Kicker.
-  ctx.fillStyle = COLORS.seafoam;
-  ctx.font = `700 ${cqi(3.2)}px ${FONT_BODY}`;
+  ctx.fillStyle = COLORS.sun;
+  ctx.font = `600 ${cqi(3.2)}px ${FONT_BODY}`;
   drawSpaced(ctx, 'EDUCATION', cx, cqi(48), cqi(0.9));
 
   // Honors.
-  ctx.fillStyle = COLORS.seafoam;
-  ctx.font = `600 ${cqi(13.5)}px ${FONT_DISPLAY}`;
+  ctx.fillStyle = COLORS.sun;
+  ctx.font = `700 ${cqi(13.5)}px ${FONT_DISPLAY}`;
   ctx.fillText(education.honors, cx, cqi(61));
 
-  ctx.fillStyle = COLORS.mango;
+  ctx.fillStyle = COLORS.orange;
   ctx.fillRect(cx - cqi(9), cqi(71), cqi(18), 2);
 
   // Degree.
-  ctx.fillStyle = COLORS.shell;
+  ctx.fillStyle = COLORS.light;
   ctx.font = `400 ${cqi(4.5)}px ${FONT_BODY}`;
   ctx.fillText('Bachelor of Science in', cx, cqi(80));
   ctx.fillText('Information Technology', cx, cqi(86.5));
 
   // School and year.
-  ctx.fillStyle = COLORS.seafoam;
-  ctx.font = `400 ${cqi(3.9)}px ${FONT_BODY}`;
+  ctx.fillStyle = COLORS.sun;
+  ctx.font = `600 ${cqi(3.9)}px ${FONT_BODY}`;
   ctx.fillText(`${education.school} · ${education.year}`, cx, cqi(97));
 
   // Footer.
-  ctx.fillStyle = COLORS.mango;
+  ctx.fillStyle = COLORS.orange;
   starPath(ctx, cx - cqi(14), cqi(130), cqi(1.9));
   ctx.fill();
-  ctx.fillStyle = 'rgba(255, 248, 239, 0.7)';
+  ctx.fillStyle = 'rgba(255, 244, 226, 0.78)';
   ctx.font = `400 ${cqi(3.5)}px ${FONT_BODY}`;
   ctx.textAlign = 'left';
   ctx.fillText('Cebu, Philippines', cx - cqi(10.5), cqi(130) + 1);
@@ -368,7 +368,7 @@ function paintCardTexture(baseMap: THREE.Texture, portrait: PaintableImage | nul
 
 const STRAP_PHRASE = 'HANNAH SHEEN · CEBU';
 
-/** Lagoon strap with the phrase repeated in Shell. One tile is 4 : 1, matching the strap's proportions. */
+/** Orange strap with the phrase repeated in Light. One tile is 4 : 1, matching the strap's proportions. */
 function paintStrapTexture(anisotropy: number): THREE.CanvasTexture | null {
   const W = 1536;
   const H = 384;
@@ -379,17 +379,17 @@ function paintStrapTexture(anisotropy: number): THREE.CanvasTexture | null {
   if (!ctx) return null;
 
   const base = ctx.createLinearGradient(0, 0, 0, H);
-  base.addColorStop(0, '#0F8985');
-  base.addColorStop(0.5, COLORS.lagoon);
-  base.addColorStop(1, '#095A58');
+  base.addColorStop(0, '#FF8040');
+  base.addColorStop(0.5, COLORS.orange);
+  base.addColorStop(1, '#E85A0F');
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, W, H);
 
   // Woven edges and stitching.
-  ctx.fillStyle = 'rgba(255, 248, 239, 0.16)';
+  ctx.fillStyle = 'rgba(255, 244, 226, 0.22)';
   ctx.fillRect(0, 0, W, 10);
   ctx.fillRect(0, H - 10, W, 10);
-  ctx.strokeStyle = 'rgba(143, 217, 207, 0.7)';
+  ctx.strokeStyle = 'rgba(5, 10, 61, 0.4)';
   ctx.lineWidth = 4;
   ctx.setLineDash([22, 16]);
   ctx.beginPath();
@@ -401,13 +401,13 @@ function paintStrapTexture(anisotropy: number): THREE.CanvasTexture | null {
   ctx.setLineDash([]);
 
   // Phrase, fitted to 88% of the tile so every repeat is whole.
-  ctx.fillStyle = COLORS.shell;
+  ctx.fillStyle = COLORS.light;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
   let size = 112;
-  let spacing = 7;
+  let spacing = 14;
   const measure = (): number => {
-    ctx.font = `700 ${size}px ${FONT_BODY}`;
+    ctx.font = `700 ${size}px ${FONT_DISPLAY}`;
     return Array.from(STRAP_PHRASE).reduce((sum, char) => sum + ctx.measureText(char).width, 0) + spacing * (STRAP_PHRASE.length - 1);
   };
   const total = measure();
@@ -467,19 +467,19 @@ export default function Lanyard({ portrait, active, onReady, onContextLost }: La
           setGlCanvas(gl.domElement);
         }}
       >
-        <ambientLight intensity={Math.PI * 0.85} color="#FFF3E2" />
-        <directionalLight position={[4, 6, 5]} intensity={1.4} color="#FFE3BA" />
+        <ambientLight intensity={Math.PI * 0.85} color="#FFF4E2" />
+        <directionalLight position={[4, 6, 5]} intensity={1.4} color="#FFF0D2" />
         <Physics gravity={GRAVITY} timeStep={isMobile ? 1 / 30 : 1 / 60}>
           <Band portrait={portrait} isMobile={isMobile} onReady={notifyReady} />
         </Physics>
         <Environment blur={0.75}>
-          {/* Warm Shell and Mango light from the top right. */}
-          <Lightformer intensity={9} color="#FFE6BF" position={[7, 5, 4]} scale={[14, 5, 1]} target={[0, 0, 0]} />
-          <Lightformer intensity={3} color="#FFF8EF" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-          <Lightformer intensity={5} color="#F2A93B" position={[10, 2, 8]} scale={[10, 8, 1]} target={[0, 0, 0]} />
-          {/* Cool Seafoam rim from the bottom left. */}
-          <Lightformer intensity={5} color="#8FD9CF" position={[-8, -5, 3]} scale={[14, 3, 1]} target={[0, 0, 0]} />
-          <Lightformer intensity={2} color="#FFF8EF" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+          {/* Warm Light key from the top right, with a Sun kick. */}
+          <Lightformer intensity={9} color="#FFF4E2" position={[7, 5, 4]} scale={[14, 5, 1]} target={[0, 0, 0]} />
+          <Lightformer intensity={3} color="#FFF4E2" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+          <Lightformer intensity={4} color="#FFD21F" position={[10, 2, 8]} scale={[10, 8, 1]} target={[0, 0, 0]} />
+          {/* Cool Cobalt rim from the bottom left. */}
+          <Lightformer intensity={5} color="#6F8CFF" position={[-8, -5, 3]} scale={[14, 3, 1]} target={[0, 0, 0]} />
+          <Lightformer intensity={2} color="#FFF4E2" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
         </Environment>
       </Canvas>
     </div>
@@ -607,6 +607,19 @@ function Band({ portrait, isMobile, onReady }: BandProps) {
     ang.copy(cardBody.angvel());
     rot.copy(cardBody.rotation());
     cardBody.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z }, true);
+
+    // Publish the card's screen position for the swarm. The body origin is the card's centre
+    // (the collider is centred on it). One canvas rect read per frame; no React state.
+    const canvasRect = state.gl.domElement.getBoundingClientRect();
+    const cardPos = cardBody.translation();
+    projected.set(cardPos.x, cardPos.y, cardPos.z);
+    const distance = state.camera.position.distanceTo(projected);
+    projected.project(state.camera);
+    const pxPerUnit = canvasRect.height / (2 * distance * Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2)));
+    badgePosition.x = canvasRect.left + (projected.x * 0.5 + 0.5) * canvasRect.width;
+    badgePosition.y = canvasRect.top + (-projected.y * 0.5 + 0.5) * canvasRect.height;
+    badgePosition.radius = CARD_HALF_DIAGONAL * pxPerUnit;
+    badgePosition.visible = true;
   });
 
   // The textures are applied from the render that follows setState, so a frame that sees both

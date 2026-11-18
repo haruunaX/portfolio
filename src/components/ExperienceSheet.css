@@ -1,0 +1,218 @@
+/* Experience detail sheet (Moalboal).
+   The scroller is the only scroll container and nothing above the surface clips,
+   so the card can morph into the sheet without being cut off mid-flight. */
+
+.experience-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+
+.experience-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(5 10 61 / 0.72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.experience-sheet__scroller {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  padding: 1.5rem;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.experience-sheet__dialog {
+  position: relative;
+  flex: 0 1 auto;
+  width: min(920px, 100%);
+  min-width: 0;
+  margin: auto;
+  color: var(--light);
+  font-family: var(--body);
+  outline: none;
+}
+
+.experience-sheet__surface {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(60% 40% at 100% 0, rgb(255 106 26 / 0.22), transparent 70%),
+    radial-gradient(50% 36% at 0 0, rgb(18 54 224 / 0.45), transparent 72%),
+    var(--ink-2);
+  box-shadow: var(--shadow-3);
+}
+
+.experience-sheet__content {
+  position: relative;
+  z-index: 1;
+  padding: clamp(1.25rem, 3.2vw, 2.25rem);
+}
+
+/* Zero-height sticky row keeps the close button reachable while the sheet scrolls. */
+.experience-sheet__bar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  justify-content: flex-end;
+  height: 0;
+}
+
+.experience-sheet__close {
+  display: grid;
+  flex: none;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -0.5rem -0.5rem 0 0;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--light);
+  background: var(--ink);
+  cursor: pointer;
+  transition:
+    background-color 0.2s var(--ease-out),
+    color 0.2s var(--ease-out);
+}
+
+.experience-sheet__close:hover {
+  color: var(--ink);
+  background: var(--sun);
+}
+
+.experience-sheet__close:focus-visible,
+.experience-sheet__link:focus-visible {
+  outline: 3px solid var(--sun);
+  outline-offset: 3px;
+}
+
+.experience-sheet__head {
+  padding-right: 3rem;
+}
+
+.experience-sheet__period {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--sun);
+}
+
+.experience-sheet__now {
+  letter-spacing: 0.08em;
+}
+
+.experience-sheet__role {
+  margin: 0.5rem 0 0;
+  font-family: var(--display);
+  font-size: clamp(1.75rem, 4.4vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--light);
+  text-wrap: balance;
+}
+
+.experience-sheet__role:focus {
+  outline: none;
+}
+
+.experience-sheet__company {
+  margin: 0.5rem 0 0;
+  font-size: 1.0625rem;
+  font-weight: 500;
+  color: var(--light-dim);
+}
+
+.experience-sheet__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.experience-sheet__media,
+.experience-sheet__text {
+  min-width: 0;
+}
+
+.experience-sheet__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.25rem;
+}
+
+.experience-sheet__description {
+  margin: 0;
+  font-size: 1.0625rem;
+  line-height: 1.65;
+  color: var(--light);
+}
+
+.experience-sheet__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.experience-sheet__tags li {
+  padding: 0.35rem 0.8rem;
+  border: 1px solid rgb(255 210 31 / 0.55);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--sun);
+}
+
+@media (min-width: 760px) {
+  .experience-sheet__body {
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    gap: 2rem;
+    align-items: start;
+  }
+}
+
+/* Phones: bottom sheet. */
+@media (max-width: 639px) {
+  .experience-sheet__scroller {
+    padding: 2.5rem 0 0;
+  }
+
+  .experience-sheet__dialog {
+    width: 100%;
+    margin: auto 0 0;
+  }
+
+  .experience-sheet__surface {
+    border-bottom-right-radius: 0 !important;
+    border-bottom-left-radius: 0 !important;
+    border-bottom-width: 0;
+  }
+
+  .experience-sheet__content {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience-sheet__close {
+    transition: none;
+  }
+}

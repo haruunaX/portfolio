@@ -1,0 +1,294 @@
+/* No overflow other than clip on this section or its ancestors: the cards are position: sticky. */
+.section.experience {
+  background:
+    radial-gradient(900px 600px at 10% 0%, rgb(18 54 224 / 0.5), transparent 60%),
+    var(--ink);
+}
+
+.experience__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+.experience__head .section-title {
+  margin: 1.25rem 0 0;
+}
+
+.experience__count {
+  font-family: var(--display);
+  font-size: clamp(5rem, 12vw, 10.5rem);
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: transparent;
+  -webkit-text-stroke: 2px var(--sun);
+}
+
+.experience .scroll-stack__inner {
+  padding-inline: 0;
+}
+
+/* ---------- Card (ScrollStack item) ---------- */
+.experience .scroll-stack-card.experience__card {
+  height: auto;
+  min-height: 21rem;
+  padding: 0;
+  border-radius: 36px;
+  background: none;
+  box-shadow:
+    0 -20px 40px -20px rgb(5 10 61 / 0.6),
+    0 40px 60px -30px rgb(5 10 61 / 0.8);
+}
+
+/* While a card is open (or opening) the stack scale, filter and dim are off. */
+.experience .scroll-stack-card[data-flat] {
+  transform: none !important;
+  filter: none !important;
+}
+
+.experience .scroll-stack-card[data-flat] .scroll-stack-card__shade {
+  opacity: 0 !important;
+}
+
+.experience__card--sun {
+  --fg: var(--ink);
+  --accent: var(--ink);
+  --surface: var(--sun);
+  --surface-line: transparent;
+  --pill-bg: var(--ink);
+  --pill-fg: var(--sun);
+}
+
+.experience__card--ink {
+  --fg: var(--light);
+  --accent: var(--sun);
+  --surface: var(--ink-2);
+  --surface-line: rgb(255 244 226 / 0.18);
+  --pill-bg: var(--sun);
+  --pill-fg: var(--ink);
+}
+
+.experience__card--orange {
+  --fg: var(--ink);
+  --accent: var(--ink);
+  --surface: var(--orange);
+  --surface-line: transparent;
+  --pill-bg: var(--ink);
+  --pill-fg: var(--sun);
+}
+
+/* The morphing layer: nothing but a background, inset behind the content. */
+.experience__surface {
+  position: absolute;
+  inset: 0;
+  background: var(--surface);
+  box-shadow: inset 0 0 0 1.5px var(--surface-line);
+}
+
+.experience__spark-clip {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 36px;
+  pointer-events: none;
+}
+
+.experience__spark {
+  position: absolute;
+  right: -60px;
+  bottom: -80px;
+  width: 260px;
+  height: 260px;
+  border: 34px solid var(--fg);
+  border-radius: 50%;
+  opacity: 0.08;
+}
+
+.experience__body {
+  position: relative;
+  display: grid;
+  grid-template-columns: clamp(4.5rem, 11vw, 8.5rem) minmax(0, 1fr) auto;
+  gap: clamp(1rem, 3vw, 2rem);
+  align-items: start;
+  min-height: inherit;
+  padding: clamp(1.4rem, 3vw, 2.2rem) clamp(1.4rem, 4vw, 2.6rem);
+  color: var(--fg);
+}
+
+.experience__index {
+  font-family: var(--display);
+  font-size: clamp(3.5rem, 8.5vw, 7.5rem);
+  font-weight: 800;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: var(--accent);
+}
+
+.experience__when {
+  margin: 0;
+  font-family: var(--body);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.experience__role {
+  margin: 0.9rem 0 0.6rem;
+  font-family: var(--display);
+  font-size: clamp(1.9rem, 4vw, 3.5rem);
+  font-weight: 800;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+
+.experience__company {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+  font-style: italic;
+  line-height: 1.1;
+}
+
+.experience__say {
+  max-width: 34em;
+  margin: 1.1rem 0 0;
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.experience__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.experience__marks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.experience__tag {
+  padding: 0.65rem 0.9rem;
+  border: 1.5px solid currentColor;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.experience__now {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 999px;
+  color: var(--sun);
+  background: var(--ink);
+  font-family: var(--display);
+  font-size: 0.875rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.experience__now::before {
+  content: '';
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 50%;
+  background: var(--orange);
+  box-shadow: 0 0 0 0 var(--orange);
+  animation: experience-ping 1.8s ease-out infinite;
+}
+
+@keyframes experience-ping {
+  70% {
+    box-shadow: 0 0 0 12px rgb(255 106 26 / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(255 106 26 / 0);
+  }
+}
+
+.experience__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.3rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--pill-fg);
+  background: var(--pill-bg);
+  font-family: var(--body);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out);
+}
+
+.experience__open:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px -10px rgb(5 10 61 / 0.7);
+}
+
+.experience__open:focus-visible {
+  outline: 3px solid var(--fg);
+  outline-offset: 3px;
+}
+
+.experience--still .experience__now::before {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .experience__now::before {
+    animation: none;
+  }
+
+  .experience__open {
+    transition: none;
+  }
+
+  .experience__open:hover {
+    transform: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .experience__body {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.9rem;
+  }
+
+  .experience__index {
+    font-size: 3.5rem;
+  }
+
+  .experience__aside {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .experience__marks {
+    justify-content: flex-start;
+  }
+}
