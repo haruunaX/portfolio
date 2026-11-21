@@ -457,7 +457,9 @@ export default function Lanyard({ portrait, active, onReady, onContextLost }: La
 
   return (
     <div className="lanyard-root" style={{ width: '100%', height: '100%', touchAction: 'pan-y' }}>
+      {/* flat = no ACES tone mapping, so the painted strap and card keep their exact colours (ACES turned #FF6A1A into #EF8834). */}
       <Canvas
+        flat
         frameloop={active ? 'always' : 'never'}
         camera={{ position: CAMERA_POSITION, fov: CAMERA_FOV }}
         dpr={[1, isMobile ? 1.5 : 2]}
@@ -467,19 +469,19 @@ export default function Lanyard({ portrait, active, onReady, onContextLost }: La
           setGlCanvas(gl.domElement);
         }}
       >
-        <ambientLight intensity={Math.PI * 0.85} color="#FFF4E2" />
-        <directionalLight position={[4, 6, 5]} intensity={1.4} color="#FFF0D2" />
+        {/* Neutral white light, so nothing tints the card or the metal clip. */}
+        <ambientLight intensity={Math.PI * 0.85} />
+        <directionalLight position={[4, 6, 5]} intensity={1.4} />
         <Physics gravity={GRAVITY} timeStep={isMobile ? 1 / 30 : 1 / 60}>
           <Band portrait={portrait} isMobile={isMobile} onReady={notifyReady} />
         </Physics>
         <Environment blur={0.75}>
-          {/* Warm Light key from the top right, with a Sun kick. */}
-          <Lightformer intensity={9} color="#FFF4E2" position={[7, 5, 4]} scale={[14, 5, 1]} target={[0, 0, 0]} />
-          <Lightformer intensity={3} color="#FFF4E2" position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
-          <Lightformer intensity={4} color="#FFD21F" position={[10, 2, 8]} scale={[10, 8, 1]} target={[0, 0, 0]} />
-          {/* Cool Cobalt rim from the bottom left. */}
-          <Lightformer intensity={5} color="#6F8CFF" position={[-8, -5, 3]} scale={[14, 3, 1]} target={[0, 0, 0]} />
-          <Lightformer intensity={2} color="#FFF4E2" position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+          {/* White reflections only: a key from the top right, soft fills, and a rim from the bottom left. */}
+          <Lightformer intensity={9} position={[7, 5, 4]} scale={[14, 5, 1]} target={[0, 0, 0]} />
+          <Lightformer intensity={3} position={[1, 1, 1]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
+          <Lightformer intensity={4} position={[10, 2, 8]} scale={[10, 8, 1]} target={[0, 0, 0]} />
+          <Lightformer intensity={5} position={[-8, -5, 3]} scale={[14, 3, 1]} target={[0, 0, 0]} />
+          <Lightformer intensity={2} position={[0, -1, 5]} rotation={[0, 0, Math.PI / 3]} scale={[100, 0.1, 1]} />
         </Environment>
       </Canvas>
     </div>
@@ -666,8 +668,11 @@ function Band({ portrait, isMobile, onReady }: BandProps) {
             onPointerDown={handlePointerDown}
           >
             <mesh geometry={nodes.card.geometry}>
+              {/* Printed face is unlit (emissive), so it shows its exact painted colours under any light; the clearcoat still catches white highlights. */}
               <meshPhysicalMaterial
-                map={cardMap ?? materials.base.map}
+                color="black"
+                emissive="white"
+                emissiveMap={cardMap ?? materials.base.map}
                 clearcoat={isMobile ? 0 : 1}
                 clearcoatRoughness={0.15}
                 roughness={0.5}
