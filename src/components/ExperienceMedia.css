@@ -1,17 +1,35 @@
 .experience-media {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   min-width: 0;
   max-width: 100%;
   font-family: var(--body);
-  color: var(--light);
+  color: var(--ink);
 }
 
 .experience-media__figure {
+  position: relative;
   margin: 0;
   min-width: 0;
+}
+
+/* Strip of washi tape holding the polaroid. It is not a shared element, so it can tilt. */
+.experience-media__figure::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  z-index: 2;
+  width: 76px;
+  height: 22px;
+  border: var(--line-thin);
+  background: var(--lime);
+  box-shadow: var(--pop-1);
+  rotate: -4deg;
+  translate: -50% 0;
+  pointer-events: none;
 }
 
 /* Shared 4:3 frame. Carries the layoutId, so it never gets a CSS transform. */
@@ -21,11 +39,11 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: var(--ink);
-  box-shadow: var(--shadow-1);
+  background: var(--cream);
+  box-shadow: var(--pop-2);
 }
 
-/* Hairline border and top highlight drawn over the image. */
+/* Outline, then the paper polaroid border, then an inner line around the photo. */
 .experience-media__frame::after {
   content: '';
   position: absolute;
@@ -33,8 +51,9 @@
   border-radius: inherit;
   pointer-events: none;
   box-shadow:
-    inset 0 0 0 1px var(--line),
-    inset 0 1px 0 rgb(255 244 226 / 0.18);
+    inset 0 0 0 3px var(--ink),
+    inset 0 0 0 12px var(--paper),
+    inset 0 0 0 14px var(--ink);
 }
 
 .experience-media__image {
@@ -45,43 +64,43 @@
   max-width: 100%;
 }
 
-/* Cover: the whole photo, over a blurred copy of itself. */
+/* Cover: the whole photo, on cream. */
 .experience-media__frame--cover .experience-media__image {
   object-fit: contain;
 }
 
-.experience-media__backdrop {
-  position: absolute;
-  inset: 0;
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: blur(18px) saturate(1.2);
-  opacity: 0.7;
-  transform: scale(1.2);
-}
-
-/* Thumbnails: cropped to fill. */
+/* Thumbnails: cropped to fill, with a thinner border. */
 .experience-media__frame--thumb .experience-media__image,
 .experience-media__frame--static .experience-media__image {
   object-fit: cover;
 }
 
+.experience-media__frame--thumb,
+.experience-media__frame--static {
+  box-shadow: var(--pop-1);
+}
+
+.experience-media__frame--thumb::after,
+.experience-media__frame--static::after {
+  box-shadow: inset 0 0 0 2px var(--ink);
+}
+
 .experience-media__caption {
-  margin: 10px 2px 0;
-  font-size: 0.8125rem;
-  line-height: 1.4;
-  color: var(--light-dim);
+  margin: 14px 2px 0;
+  font-family: var(--hand);
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--ink-dim);
 }
 
 /* Thumbnail strip */
 .experience-media__strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  gap: 12px;
   margin: 0;
-  padding: 0;
+  padding: 0 4px 4px 0;
   list-style: none;
 }
 
@@ -105,46 +124,50 @@
 }
 
 .experience-media__thumb:hover {
-  filter: brightness(1.1) saturate(1.1);
+  filter: brightness(1.08) saturate(1.15);
 }
 
 .experience-media__thumb:focus-visible {
-  outline: 3px solid var(--sun);
-  outline-offset: 2px;
+  outline: 3px solid var(--grape);
+  outline-offset: 3px;
 }
 
+/* The selected thumb is static (not a shared element), so it may rest at a slight tilt. */
 .experience-media__thumb--selected {
   cursor: default;
+  rotate: -2deg;
 }
 
 .experience-media__thumb--selected:hover {
   filter: none;
 }
 
-/* Selected thumbnail: sun ring drawn inside the frame so it never overflows the strip. */
+/* Selected thumbnail: lime ring between two ink lines, drawn inside the frame. */
 .experience-media__thumb--selected .experience-media__frame::after {
   box-shadow:
-    inset 0 0 0 2px var(--sun),
-    inset 0 0 0 4px var(--ink);
+    inset 0 0 0 2px var(--ink),
+    inset 0 0 0 6px var(--lime),
+    inset 0 0 0 8px var(--ink);
 }
 
-/* No photos: monogram tile */
+/* No photos: monogram tile. Not a shared element, so it rests at a slight tilt. */
 .experience-media__monogram {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 10px;
   width: 100%;
   aspect-ratio: 4 / 3;
   padding: 16px;
   box-sizing: border-box;
   text-align: center;
+  border: var(--line);
   border-radius: var(--r-md);
-  background: linear-gradient(145deg, var(--cobalt) 0%, var(--orange) 100%);
-  box-shadow:
-    var(--shadow-1),
-    inset 0 0 0 1px var(--line);
+  background: var(--grape);
+  box-shadow: var(--pop-2);
+  rotate: -1.5deg;
 }
 
 .experience-media__initials {
@@ -153,38 +176,47 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
-  color: var(--light);
-  text-shadow: 0 2px 14px rgb(5 10 61 / 0.55);
+  color: var(--cream);
 }
 
 .experience-media__company {
   max-width: 100%;
-  padding: 0.25rem 0.7rem;
+  padding: 0.3rem 0.8rem;
+  border: var(--line-thin);
   border-radius: 999px;
-  background: var(--ink);
+  background: var(--paper);
+  box-shadow: var(--pop-1);
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.3;
-  color: var(--light);
+  color: var(--ink);
   overflow-wrap: anywhere;
+}
+
+.experience-media__sticker {
+  position: absolute;
+  top: -14px;
+  right: -10px;
+  rotate: 14deg;
+  filter: var(--diecut);
 }
 
 /* Development-only hint, absent from production builds. */
 .experience-media__hint {
   margin: 0;
   padding: 10px 12px;
-  border: 1px dashed rgb(255 244 226 / 0.5);
+  border: 2px dashed var(--ink);
   border-radius: var(--r-sm);
   font-size: 0.8125rem;
   line-height: 1.5;
-  color: var(--light);
+  color: var(--ink);
   overflow-wrap: anywhere;
 }
 
 .experience-media__hint code {
   font-family: ui-monospace, 'SFMono-Regular', Consolas, monospace;
   font-size: 0.78rem;
-  color: var(--sun);
+  color: var(--grape);
   word-break: break-all;
 }
 

@@ -1,4 +1,4 @@
-/* Project case file dialog, Moalboal skin: ink surface, cobalt glow, sun accents.
+/* Project case file dialog, Sticker pop skin: cream panel, ink outline, hard ink shadow.
    The scroller is the only scroll container and the dialog has no overflow clip,
    so shared elements can travel from the tile without being cut off mid-morph. */
 
@@ -11,9 +11,7 @@
 .case-file__backdrop {
   position: absolute;
   inset: 0;
-  background: rgb(5 10 61 / 0.8);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  background: rgb(27 16 53 / 0.62);
 }
 
 .case-file__scroller {
@@ -32,7 +30,7 @@
   width: min(1040px, 100%);
   min-width: 0;
   margin: auto;
-  color: var(--light);
+  color: var(--ink);
   font-family: var(--body);
   outline: none;
 }
@@ -41,19 +39,18 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  border: 1px solid var(--line);
-  border-radius: var(--r-xl);
-  background:
-    radial-gradient(70% 52% at 100% 0, rgb(18 54 224 / 0.8), transparent 70%),
-    radial-gradient(46% 36% at 0 100%, rgb(255 106 26 / 0.14), transparent 70%),
-    var(--ink);
-  box-shadow: var(--shadow-3);
+  border: var(--line);
+  border-radius: var(--r-lg);
+  background-color: var(--cream);
+  background-image: radial-gradient(rgb(27 16 53 / 0.09) 1.2px, transparent 1.6px);
+  background-size: 22px 22px;
+  box-shadow: var(--pop-3);
 }
 
 .case-file__content {
   position: relative;
   z-index: 1;
-  padding: clamp(0.75rem, 2.2vw, 1.25rem);
+  padding: clamp(0.9rem, 2.4vw, 1.4rem);
 }
 
 /* Zero-height sticky row keeps close and prev/next reachable while the dialog scrolls. */
@@ -69,42 +66,39 @@
 .case-file__controls {
   display: flex;
   flex: none;
-  gap: 0.4rem;
-  margin: 0.5rem 0.5rem 0 0;
+  gap: 0.5rem;
+  margin: 0.6rem 0.6rem 0 0;
 }
 
 .case-file__close,
-.case-file__nav {
+.case-file .case-file__nav {
   display: grid;
   flex: none;
   width: 2.75rem;
   height: 2.75rem;
+  min-height: 0;
   padding: 0;
   place-items: center;
-  border: 1px solid rgb(255 244 226 / 0.28);
+  border: var(--line);
   border-radius: 999px;
-  color: var(--light);
-  background: rgb(5 10 61 / 0.82);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  color: var(--ink);
+  box-shadow: var(--pop-1);
   cursor: pointer;
-  transition:
-    background-color 0.2s var(--ease-out),
-    color 0.2s var(--ease-out),
-    border-color 0.2s var(--ease-out);
+}
+
+.case-file__close {
+  background: var(--pink);
 }
 
 .case-file__close:hover,
-.case-file__nav:hover {
-  border-color: var(--sun);
-  color: var(--ink);
-  background: var(--sun);
+.case-file .case-file__nav:hover {
+  background: var(--lime);
 }
 
 .case-file__top {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1.1rem;
+  gap: 1.25rem;
   align-items: start;
 }
 
@@ -118,9 +112,9 @@
   width: 100%;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border: 1px solid var(--line);
-  background: rgb(0 0 0 / 0.3);
-  box-shadow: var(--shadow-2);
+  border: var(--line);
+  background: var(--ink);
+  box-shadow: var(--pop-2);
 }
 
 .case-file__image {
@@ -141,14 +135,15 @@
   height: 3rem;
   padding-inline: 0.5rem;
   place-items: center;
+  border: var(--line-thin);
   color: var(--ink);
+  background: var(--lime);
+  box-shadow: var(--pop-1);
   font-family: var(--display);
   font-size: 1.05rem;
   font-weight: 800;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.02em;
   line-height: 1;
-  background: var(--sun);
-  box-shadow: 0 10px 20px -8px rgb(5 10 61 / 0.7);
 }
 
 .case-file__summary {
@@ -156,7 +151,7 @@
   min-width: 0;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.8rem;
+  gap: 0.85rem;
   padding: 0 0.25rem;
 }
 
@@ -167,9 +162,11 @@
 .case-file__stamp {
   display: inline-block;
   padding: 0.4rem 0.75rem;
-  border: 2px solid var(--sun);
+  border: var(--line-thin);
   border-radius: 10px;
-  color: var(--sun);
+  color: var(--ink);
+  background: var(--pink);
+  box-shadow: var(--pop-1);
   font-family: var(--display);
   font-size: 0.8rem;
   font-weight: 800;
@@ -181,7 +178,7 @@
 
 .case-file__client {
   margin: 0;
-  color: var(--light-dim);
+  color: var(--ink-dim);
   font-size: 0.78rem;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -190,7 +187,7 @@
 
 .case-file__title {
   margin: 0;
-  color: var(--light);
+  color: var(--ink);
   font-family: var(--display);
   font-size: clamp(1.9rem, 4.6vw, 3.2rem);
   font-weight: 800;
@@ -201,7 +198,7 @@
 
 .case-file__description {
   margin: 0;
-  color: var(--light);
+  color: var(--ink);
   font-size: 1rem;
   line-height: 1.6;
 }
@@ -211,48 +208,35 @@
   margin: 0;
   padding: 0;
   flex-wrap: wrap;
-  gap: 0.45rem;
+  gap: 0.5rem;
   list-style: none;
 }
 
-.case-file__stack li {
-  padding: 0.35rem 0.8rem;
-  border-radius: 999px;
-  color: var(--ink);
-  font-size: 0.8rem;
-  font-weight: 650;
-  line-height: 1.3;
-  background: var(--sun);
+.case-file__stack .chip:nth-child(4n + 1) {
+  --chip-bg: var(--lime);
 }
 
-.case-file__link {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
+.case-file__stack .chip:nth-child(4n + 2) {
+  --chip-bg: var(--sky);
+}
+
+.case-file__stack .chip:nth-child(4n + 3) {
+  --chip-bg: var(--paper);
+}
+
+.case-file__stack .chip:nth-child(4n) {
+  --chip-bg: var(--pink);
+}
+
+.case-file .case-file__link {
   gap: 0.5rem;
-  min-height: 48px;
-  padding: 0.75rem 1.35rem;
-  border-radius: 999px;
-  color: var(--ink);
   font-size: 0.95rem;
-  font-weight: 650;
-  text-decoration: none;
-  background: var(--sun);
-  box-shadow: 0 10px 24px -12px rgb(255 210 31 / 0.85);
-  transition:
-    box-shadow 0.2s var(--ease-out),
-    transform 0.2s var(--ease-out);
-}
-
-.case-file__link:hover {
-  box-shadow: 0 16px 32px -14px rgb(255 210 31 / 0.95);
-  transform: translateY(-2px);
 }
 
 .case-file__close:focus-visible,
-.case-file__nav:focus-visible,
-.case-file__link:focus-visible {
-  outline: 3px solid var(--sun);
+.case-file .case-file__nav:focus-visible,
+.case-file .case-file__link:focus-visible {
+  outline: 3px solid var(--ink);
   outline-offset: 3px;
 }
 
@@ -266,23 +250,30 @@
 }
 
 .case-file__gallery {
-  margin-top: 1.4rem;
+  margin-top: 1.6rem;
 }
 
 .case-file__label {
-  margin: 0 0 0.65rem 0.25rem;
-  color: var(--sun);
+  display: inline-block;
+  margin: 0 0 0.9rem 0.25rem;
+  padding: 0.38rem 0.8rem;
+  border: var(--line-thin);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--lime);
+  box-shadow: var(--pop-1);
   font-family: var(--body);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  rotate: -2deg;
 }
 
 .case-file__gallery-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.75rem;
+  gap: 1rem;
 }
 
 .case-file__gallery-grid > :last-child:nth-child(odd) {
@@ -294,10 +285,31 @@
   margin: 0;
   aspect-ratio: 16 / 10;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: var(--line);
   border-radius: var(--r-md);
-  background: rgb(0 0 0 / 0.3);
-  box-shadow: var(--shadow-1);
+  background: var(--ink);
+  box-shadow: var(--pop-1);
+  rotate: -0.7deg;
+  transition:
+    rotate 0.3s var(--ease-spring),
+    translate 0.3s var(--ease-spring),
+    box-shadow 0.3s var(--ease-out);
+}
+
+.case-file__shot:nth-child(even) {
+  rotate: 0.7deg;
+}
+
+.case-file__gallery-grid > :last-child:nth-child(odd) {
+  rotate: 0deg;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .case-file__shot:hover {
+    rotate: 0deg;
+    translate: -2px -3px;
+    box-shadow: var(--pop-2);
+  }
 }
 
 .case-file__shot img {
@@ -311,7 +323,7 @@
 @media (min-width: 861px) {
   .case-file__top {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
-    gap: clamp(1.1rem, 2.5vw, 1.75rem);
+    gap: clamp(1.25rem, 2.6vw, 1.9rem);
   }
 
   .case-file__summary {
@@ -332,7 +344,7 @@
 
   .case-file__paper {
     border-bottom: 0;
-    border-radius: var(--r-xl) var(--r-xl) 0 0;
+    border-radius: var(--r-lg) var(--r-lg) 0 0;
   }
 
   .case-file__content {
@@ -347,13 +359,11 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .case-file__close,
-  .case-file__nav,
-  .case-file__link {
+  .case-file__shot {
     transition: none;
   }
 
-  .case-file__link:hover {
-    transform: none;
+  .case-file__shot:hover {
+    translate: none;
   }
 }

@@ -1,6 +1,17 @@
-/* Certificates: a snap rail of proof cards on cobalt.
+/* Certificates: a snap rail of paper proof cards on sky.
    Everything is scoped under .certificates. The rail is the only horizontal scroller and sits
-   inside .wrap with min-width: 0, so it can never widen the page. */
+   inside .wrap with min-width: 0, so it can never widen the page.
+   Tilt layers: .certificates__tilt carries the resting tilt, .certificates__card carries the pointer
+   tilt. The shared image element never gets a rotation of its own. */
+
+.certificates {
+  --kicker-bg: var(--paper);
+  --hl: var(--pink);
+}
+
+.certificates .section-lede {
+  color: var(--ink);
+}
 
 .certificates__head {
   display: flex;
@@ -16,39 +27,57 @@
 .certificates__arrows {
   display: flex;
   flex: none;
-  gap: 0.6rem;
+  gap: 0.8rem;
+  padding-bottom: 0.5rem;
 }
 
+/* Round sticker arrows: outlined, hard shadow, resting tilt, press flat. */
 .certificates__arrow-btn {
   display: grid;
-  width: 3rem;
-  height: 3rem;
+  width: 3.25rem;
+  height: 3.25rem;
   padding: 0;
   place-items: center;
-  border: 0;
-  border-radius: 999px;
+  border: var(--line);
+  border-radius: 50%;
   color: var(--ink);
-  background: var(--sun);
-  box-shadow: var(--shadow-1);
+  background: var(--lime);
+  box-shadow: var(--pop-2);
   cursor: pointer;
+  rotate: -5deg;
   transition:
-    transform 0.2s var(--ease-spring),
+    rotate 0.25s var(--ease-spring),
+    translate 0.18s var(--ease-out),
+    box-shadow 0.18s var(--ease-out),
     background-color 0.2s var(--ease-out),
     opacity 0.2s var(--ease-out);
 }
 
+.certificates__arrow-btn:last-child {
+  rotate: 5deg;
+}
+
 .certificates__arrow-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  background: var(--light);
+  rotate: 0deg;
+  translate: -1px -2px;
+  background: var(--paper);
+  box-shadow: var(--pop-3);
 }
 
 .certificates__arrow-btn:active:not(:disabled) {
-  transform: translateY(0) scale(0.96);
+  translate: 3px 3px;
+  box-shadow: 0 0 0 var(--ink);
 }
 
 .certificates__arrow-btn:disabled {
   cursor: default;
-  opacity: 0.35;
+  opacity: 0.45;
+  box-shadow: var(--pop-1);
+}
+
+.certificates__arrow-btn:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
 }
 
 /* Edge fades: only on the side that still has cards to reveal. */
@@ -57,7 +86,7 @@
   --fade-r: 0px;
   min-width: 0;
   max-width: 100%;
-  margin-top: clamp(1.75rem, 4vw, 2.75rem);
+  margin-top: clamp(1.25rem, 3vw, 2rem);
   -webkit-mask-image: linear-gradient(
     to right,
     transparent 0,
@@ -84,16 +113,17 @@
 
 .certificates__rail {
   display: flex;
-  gap: 1.25rem;
+  gap: 1.75rem;
   margin: 0;
-  /* Room for the card shadow and the tilt, which the rail's overflow would otherwise clip. */
-  padding: 1.75rem 0.5rem 2.25rem;
+  /* Room for the hard shadow, the resting tilt and the proof sticker, which the rail's overflow
+     would otherwise clip. */
+  padding: 2rem 1.25rem 2.5rem;
   list-style: none;
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 0.5rem;
+  scroll-padding-inline: 1.25rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
   cursor: grab;
@@ -116,6 +146,32 @@
   scroll-snap-align: start;
 }
 
+/* Resting tilt wrapper. Flattened from script right before a card opens so the morph starts level. */
+.certificates__tilt {
+  --rest: 0deg;
+  --sticker-tilt: 8deg;
+  display: flex;
+  width: 100%;
+  rotate: var(--rest);
+  transition:
+    rotate 0.35s var(--ease-spring),
+    translate 0.3s var(--ease-out);
+}
+
+.certificates__tilt:hover,
+.certificates__tilt:focus-within {
+  rotate: 0deg;
+  translate: 0 -5px;
+}
+
+.certificates__tilt--flat,
+.certificates__tilt--flat:hover,
+.certificates__tilt--flat:focus-within {
+  rotate: 0deg;
+  translate: 0 0;
+  transition: none;
+}
+
 .certificates__card {
   --tilt-x: 0deg;
   --tilt-y: 0deg;
@@ -128,22 +184,33 @@
   flex-direction: column;
   gap: 0.85rem;
   padding: 0.9rem 0.9rem 1.1rem;
-  border: 0;
+  border: var(--line);
   border-radius: var(--r-md);
   color: var(--ink);
   font: inherit;
   text-align: left;
-  background: var(--light);
-  box-shadow: var(--shadow-1);
+  background: var(--paper);
+  box-shadow: var(--pop-2);
   cursor: inherit;
   transform: perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
   transition:
     transform 0.3s var(--ease-out),
-    box-shadow 0.3s var(--ease-out);
+    translate 0.18s var(--ease-out),
+    box-shadow 0.25s var(--ease-out);
 }
 
 .certificates__card:hover {
-  box-shadow: var(--shadow-2);
+  box-shadow: var(--pop-3);
+}
+
+.certificates__card:active {
+  translate: 3px 3px;
+  box-shadow: 0 0 0 var(--ink);
+}
+
+.certificates__card:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 4px;
 }
 
 /* Set from script right before a card opens, so the shared element morph starts from a flat box. */
@@ -157,32 +224,71 @@
   z-index: 2;
   border-radius: inherit;
   background:
-    radial-gradient(circle at var(--sheen-x) var(--sheen-y), rgb(255 210 31 / 0.4), transparent 52%),
-    linear-gradient(115deg, transparent 30%, rgb(255 106 26 / 0.14) 48%, transparent 66%);
+    radial-gradient(circle at var(--sheen-x) var(--sheen-y), rgb(255 255 255 / 0.55), transparent 52%),
+    linear-gradient(115deg, transparent 30%, rgb(255 79 160 / 0.14) 48%, transparent 66%);
   opacity: var(--sheen-o);
   pointer-events: none;
   transition: opacity 0.3s var(--ease-out);
 }
 
+/* Round lime sticker stuck on the card corner: "proof #01". */
 .certificates__proof {
-  align-self: flex-start;
-  padding: 0.28rem 0.7rem;
-  border-radius: 999px;
+  position: absolute;
+  top: -1.15rem;
+  right: -1rem;
+  z-index: 3;
+  display: grid;
+  width: 3.6rem;
+  height: 3.6rem;
+  place-content: center;
+  border: var(--line);
+  border-radius: 50%;
   color: var(--ink);
   font-family: var(--display);
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
   text-transform: uppercase;
-  background: var(--sun);
+  background: var(--lime);
+  box-shadow: var(--pop-1);
+  rotate: var(--sticker-tilt);
+  pointer-events: none;
+}
+
+.certificates__proof span:first-child {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+}
+
+.certificates__proof span:last-child {
+  margin-top: 0.12rem;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+}
+
+.certificates__tilt:hover .certificates__proof {
+  animation: certificates-wobble 0.55s var(--ease-spring);
+}
+
+@keyframes certificates-wobble {
+  0%,
+  100% {
+    rotate: var(--sticker-tilt);
+  }
+  35% {
+    rotate: calc(var(--sticker-tilt) + 14deg);
+  }
+  70% {
+    rotate: calc(var(--sticker-tilt) - 8deg);
+  }
 }
 
 .certificates__image {
   display: block;
   width: 100%;
   height: auto;
-  border: 1px solid rgb(5 10 61 / 0.12);
-  background: rgb(5 10 61 / 0.06);
+  border: var(--line-thin);
+  background: var(--cream);
   user-select: none;
   -webkit-user-drag: none;
 }
@@ -198,14 +304,14 @@
   display: block;
   font-family: var(--display);
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 750;
   letter-spacing: -0.01em;
   line-height: 1.2;
   overflow-wrap: break-word;
 }
 
 .certificates__issuer {
-  color: rgb(5 10 61 / 0.78);
+  color: var(--ink-dim);
   font-size: 0.92rem;
   line-height: 1.4;
 }
@@ -219,8 +325,8 @@
   font-size: 0.88rem;
   font-weight: 700;
   text-decoration: underline;
-  text-decoration-color: var(--orange);
-  text-decoration-thickness: 2px;
+  text-decoration-color: var(--pink);
+  text-decoration-thickness: 3px;
   text-underline-offset: 0.25em;
 }
 
@@ -240,12 +346,17 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .certificates__arrows {
+    padding-bottom: 0;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .certificates__card,
   .certificates__sheen,
   .certificates__arrow,
+  .certificates__tilt,
   .certificates__arrow-btn {
     transition: none;
   }
@@ -254,10 +365,23 @@
     transform: none;
   }
 
+  .certificates__tilt:hover .certificates__proof {
+    animation: none;
+  }
+
+  .certificates__tilt:hover,
+  .certificates__tilt:focus-within,
   .certificates__arrow-btn:hover:not(:disabled),
   .certificates__arrow-btn:active:not(:disabled),
+  .certificates__card:active,
   .certificates__card:hover .certificates__arrow,
   .certificates__card:focus-visible .certificates__arrow {
+    translate: 0 0;
     transform: none;
+  }
+
+  .certificates__tilt:hover,
+  .certificates__tilt:focus-within {
+    rotate: var(--rest);
   }
 }

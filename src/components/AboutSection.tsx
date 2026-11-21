@@ -1,11 +1,12 @@
 import { useRef } from 'react'
 import type { KeyboardEvent, PointerEvent } from 'react'
 import { motion } from 'motion/react'
-import type { Variants } from 'motion/react'
 import graduationPhoto from '../assets/images/hannah-graduation.jpg'
 import { education, skillGroups } from '../data/portfolio'
-import { FADE, STAGGER } from '../lib/motion'
+import { riseIn, slapIn, STAGGER } from '../lib/motion'
 import { useReducedMotion } from '../lib/useReducedMotion'
+import Buddy from './Buddy'
+import Sticker from './Sticker'
 import './AboutSection.css'
 
 const KEY_STEP: Record<string, readonly [number, number]> = {
@@ -15,23 +16,69 @@ const KEY_STEP: Record<string, readonly [number, number]> = {
   ArrowDown: [0, 0.2],
 }
 
-const TONES = ['sun', 'orange', 'light', 'cobalt'] as const
+/** Chip colours cycle by skill group. */
+const TONES = ['lime', 'sky', 'pink', 'paper'] as const
+
+/** Fixed small resting tilts, picked by chip index so renders stay deterministic. */
+const TILTS = [-3, 2, -1.5, 3, -2, 1.5, -2.5, 2.5] as const
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
 
-const clusterVariants: Variants = {
-  hidden: {},
-  show: { transition: { staggerChildren: STAGGER, delayChildren: 0.05 } },
-}
+/** Scallop bumps around the rosette disc. */
+const SCALLOPS = Array.from({ length: 14 }, (_, index) => {
+  const angle = (index / 14) * Math.PI * 2
+  return { x: 60 + Math.cos(angle) * 43, y: 60 + Math.sin(angle) * 43 }
+})
 
-const popVariants: Variants = {
-  hidden: { opacity: 0, scale: 0.6, y: 10 },
-  show: {
-    opacity: 1,
-    scale: 1,
-    y: 0,
-    transition: { type: 'spring', visualDuration: 0.35, bounce: 0.35 },
-  },
+/** Cum Laude rosette: scalloped lime disc, star, two ribbon tails. */
+function Rosette() {
+  return (
+    <svg className="about-rosette-svg" viewBox="0 0 120 138" width={124} height={142} aria-hidden="true" focusable="false">
+      <path
+        d="M40 78 L26 128 L45 119 L55 134 L66 82 Z"
+        fill="var(--pink)"
+        stroke="var(--ink)"
+        strokeWidth={4}
+        strokeLinejoin="round"
+      />
+      <path
+        d="M80 78 L94 128 L75 119 L65 134 L54 82 Z"
+        fill="var(--sky)"
+        stroke="var(--ink)"
+        strokeWidth={4}
+        strokeLinejoin="round"
+      />
+      <g fill="var(--ink)" stroke="var(--ink)" strokeWidth={7} strokeLinejoin="round">
+        <circle cx={60} cy={60} r={43} />
+        {SCALLOPS.map((bump) => (
+          <circle key={`${bump.x}-${bump.y}`} cx={bump.x} cy={bump.y} r={12} />
+        ))}
+      </g>
+      <g fill="var(--lime)">
+        <circle cx={60} cy={60} r={43} />
+        {SCALLOPS.map((bump) => (
+          <circle key={`${bump.x}-${bump.y}`} cx={bump.x} cy={bump.y} r={12} />
+        ))}
+      </g>
+      <circle cx={60} cy={60} r={36} fill="none" stroke="var(--ink)" strokeWidth={2.5} strokeDasharray="2 5" strokeLinecap="round" />
+      <path
+        d="M60 28 L66.5 43 L82 44.5 L70.5 55 L74 70.5 L60 62.5 L46 70.5 L49.5 55 L38 44.5 L53.5 43 Z"
+        fill="var(--paper)"
+        stroke="var(--ink)"
+        strokeWidth={3}
+        strokeLinejoin="round"
+      />
+      <text
+        x={60}
+        y={89}
+        textAnchor="middle"
+        fill="var(--ink)"
+        style={{ font: '800 14px var(--display)', letterSpacing: '0.04em' }}
+      >
+        CUM LAUDE
+      </text>
+    </svg>
+  )
 }
 
 export default function AboutSection() {
@@ -79,68 +126,79 @@ export default function AboutSection() {
     setTilt(pos.x, pos.y)
   }
 
+  const rise = riseIn(reduced)
+  const slap = slapIn(0, reduced)
+
   return (
-    <section id="about" className="section surface-ink about" aria-labelledby="about-title">
+    <section id="about" className="section surface-cream about" aria-labelledby="about-title">
       <div className="wrap about-grid">
         <div className="about-cred">
-          <div className="about-stage" onPointerMove={onPointerMove} onPointerLeave={resetTilt}>
-            <div
-              ref={cardRef}
-              className="about-card"
-              data-still={reduced ? '' : undefined}
-              tabIndex={0}
-              role="img"
-              aria-label="Holographic Cum Laude ID card for Hannah Sheen. Move the pointer over it or use the arrow keys to tilt."
-              onKeyDown={onKeyDown}
-              onBlur={resetTilt}
-            >
-              <div className="about-face">
-                <div className="about-face-top">
-                  <span>
-                    Cebu Technological
-                    <br />
-                    University
-                  </span>
-                  <b>HS</b>
+          <motion.div
+            className="about-rise"
+            variants={rise}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.2 }}
+          >
+            <div className="about-stage-row">
+              <div className="about-stage" onPointerMove={onPointerMove} onPointerLeave={resetTilt}>
+                <div
+                  ref={cardRef}
+                  className="about-card"
+                  data-still={reduced ? '' : undefined}
+                  tabIndex={0}
+                  role="img"
+                  aria-label="Cum Laude ID card for Hannah Sheen. Move the pointer over it or use the arrow keys to tilt."
+                  onKeyDown={onKeyDown}
+                  onBlur={resetTilt}
+                >
+                  <div className="about-face">
+                    <div className="about-face-top">
+                      <span>
+                        Cebu Technological
+                        <br />
+                        University
+                      </span>
+                      <b>HS</b>
+                    </div>
+                    <div className="about-face-body">
+                      <div className="about-face-photo">
+                        <img
+                          src={graduationPhoto}
+                          alt="Hannah Sheen in graduation toga"
+                          draggable={false}
+                          width={1}
+                          height={1}
+                        />
+                      </div>
+                      <div className="about-face-honors">
+                        Cum
+                        <br />
+                        Laude
+                      </div>
+                      <div className="about-face-name">Hannah Sheen Obejero</div>
+                      <div className="about-face-sub">BS Information Technology · Class of {education.year}</div>
+                      <div className="about-face-bar">
+                        <div className="about-face-bars" />
+                        <div className="about-face-year">CTU · {education.year}</div>
+                      </div>
+                    </div>
+                    <div className="about-holo" />
+                    <div className="about-holo2" />
+                  </div>
+                  <Sticker className="about-rosette" rotate={-10} label="Cum Laude">
+                    <Rosette />
+                  </Sticker>
                 </div>
-                <div className="about-face-photo">
-                  <img
-                    src={graduationPhoto}
-                    alt="Hannah Sheen in graduation toga"
-                    draggable={false}
-                    width={1}
-                    height={1}
-                  />
-                </div>
-                <div className="about-face-honors">
-                  Cum
-                  <br />
-                  Laude
-                </div>
-                <div className="about-face-name">Hannah Sheen Obejero</div>
-                <div className="about-face-sub">BS Information Technology · Class of {education.year}</div>
-                <div className="about-face-bar">
-                  <div className="about-face-bars" />
-                  <div className="about-face-year">CTU · {education.year}</div>
-                </div>
-                <div className="about-holo" />
-                <div className="about-holo2" />
               </div>
-              <div className="about-sticker">
-                <div>
-                  <b>{education.year}</b>Honors
-                </div>
+
+              <div className="about-buddy">
+                <Buddy pose="sign" sign="Cum Laude!" size={110} />
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div
-            className="about-glow"
-            data-still={reduced ? '' : undefined}
-            role="note"
-            aria-label="Cum Laude, BS IT, CTU 2026"
-          >
-            <span className="about-glow-in" aria-hidden="true" />
+          <div className="about-tag" role="note" aria-label="Cum Laude, BS IT, CTU 2026">
             <i aria-hidden="true" />
             Cum Laude · BS IT · CTU {education.year}
           </div>
@@ -163,29 +221,34 @@ export default function AboutSection() {
 
         <div className="about-copy">
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            variants={rise}
+            initial="hidden"
+            whileInView="show"
             viewport={{ once: true, amount: 0.2 }}
-            transition={FADE}
           >
-            <p className="kicker">01 · About</p>
+            <p className="kicker about-kicker">01 · About</p>
             <h2 id="about-title" className="section-title about-title">
-              I like making complicated things feel <em>simple</em>.
+              I like making complicated things feel{' '}
+              <motion.em variants={slap} initial="hidden" whileInView="show" viewport={{ once: true, amount: 1 }}>
+                simple
+              </motion.em>
+              .
             </h2>
             <p className="section-lede about-bio">
-              I am a Cebu-based developer who enjoys building useful systems, learning fast, and helping teams keep
-              technical work human. My sweet spot sits between code, coordination, and thoughtful user experience.
+              I am a developer who enjoys building useful systems, learning fast, and helping teams keep technical work
+              human. My sweet spot sits between code, coordination, and thoughtful user experience.
             </p>
           </motion.div>
 
           <motion.div
             className="about-now"
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
+            variants={rise}
+            initial="hidden"
+            whileInView="show"
             viewport={{ once: true, amount: 0.2 }}
-            transition={FADE}
           >
-            <p className="about-now-label">Currently doing</p>
+            <span className="about-now-tape" aria-hidden="true" />
+            <p className="hand about-now-label">currently:</p>
             <p className="about-now-role">IT Executive Assistant</p>
             <p className="about-now-company">Lifewood Data Technology</p>
             <p className="about-now-text">
@@ -194,32 +257,33 @@ export default function AboutSection() {
             </p>
           </motion.div>
 
-          <div className="about-skills">
+          <motion.div
+            className="about-sheet"
+            variants={rise}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.1 }}
+          >
             {skillGroups.map((group, groupIndex) => (
-              <motion.section
-                key={group.title}
-                className="about-group"
-                aria-label={group.title}
-                variants={clusterVariants}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, amount: 0.3 }}
-              >
-                <h3 className="about-group-title">{group.title}</h3>
+              <section key={group.title} className="about-group" aria-label={group.title}>
+                <h3 className="hand about-group-title">{group.title}</h3>
                 <ul className="about-chips">
-                  {group.items.map((item) => (
-                    <motion.li
-                      key={item}
-                      className={`chip about-chip about-chip-${TONES[groupIndex % TONES.length]}`}
-                      variants={popVariants}
-                    >
-                      {item}
-                    </motion.li>
+                  {group.items.map((item, itemIndex) => (
+                    <li key={item} className="about-chip-item">
+                      <Sticker
+                        snapBack
+                        rotate={TILTS[(groupIndex * 3 + itemIndex) % TILTS.length]}
+                        delay={itemIndex * STAGGER}
+                        label={item}
+                      >
+                        <span className={`chip chip-${TONES[groupIndex % TONES.length]} about-chip`}>{item}</span>
+                      </Sticker>
+                    </li>
                   ))}
                 </ul>
-              </motion.section>
+              </section>
             ))}
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

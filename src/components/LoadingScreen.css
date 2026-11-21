@@ -1,13 +1,13 @@
 /*
- * Moalboal intro. Nothing between the viewport and the front badge card may clip: the card
- * flies to the hero as a shared element. Only the backdrop clips (its own glow and grain).
+ * Sticker pop intro. Nothing between the viewport and the front badge card may clip: the card
+ * flies to the hero as a shared element. Only the backdrop clips (its own dot grid).
  */
 .intro-loader {
   position: fixed;
   inset: 0;
   z-index: 1000;
   overflow: visible;
-  color: var(--light);
+  color: var(--ink);
   font-family: var(--body);
   --card-w: clamp(132px, min(42vw, (100vh - 340px) * 32 / 45), 250px);
 }
@@ -22,29 +22,19 @@
   pointer-events: none;
 }
 
-/* ---------- Backdrop: Cobalt, sun glow, orange bounce, fine grain ---------- */
+/* ---------- Backdrop: flat pink with a slowly drifting dot grid ---------- */
 
 .intro-loader__backdrop {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  background:
-    radial-gradient(52vmax 52vmax at 100% 0%, rgb(255 210 31 / 0.3), rgb(255 210 31 / 0) 62%),
-    radial-gradient(44vmax 44vmax at 0% 100%, rgb(255 106 26 / 0.3), rgb(255 106 26 / 0) 62%),
-    radial-gradient(34vmax 34vmax at 50% 38%, rgb(255 244 226 / 0.14), rgb(255 244 226 / 0) 70%),
-    var(--cobalt);
+  background-color: var(--pink);
+  background-image: radial-gradient(rgb(255 255 255 / 0.32) 2.2px, transparent 2.8px);
+  background-size: 30px 30px;
+  animation: intro-loader-drift 14s linear infinite;
 }
 
-.intro-loader__backdrop::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  opacity: 0.07;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  pointer-events: none;
-}
-
-/* ---------- Skip ---------- */
+/* ---------- Skip: an outlined sticker button (.btn .btn-paper) ---------- */
 
 .intro-loader__skip {
   position: absolute;
@@ -52,32 +42,13 @@
   right: max(16px, env(safe-area-inset-right));
   z-index: 2;
   padding: 10px 16px;
-  border: 1px solid rgb(255 244 226 / 0.5);
-  border-radius: 999px;
-  background: rgb(5 10 61 / 0.45);
-  box-shadow: var(--shadow-1);
-  -webkit-backdrop-filter: blur(10px) saturate(1.2);
-  backdrop-filter: blur(10px) saturate(1.2);
-  color: var(--light);
-  font: 700 0.84rem/1 var(--body);
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition:
-    transform 0.2s var(--ease-out),
-    box-shadow 0.2s var(--ease-out);
-}
-
-.intro-loader__skip:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-2);
-}
-
-.intro-loader__skip:active {
-  transform: translateY(0);
+  box-shadow: var(--pop-1);
+  font-size: 0.84rem;
+  line-height: 1;
 }
 
 .intro-loader__skip:focus-visible {
-  outline: 3px solid var(--sun);
+  outline: 3px solid var(--grape);
   outline-offset: 3px;
 }
 
@@ -108,16 +79,18 @@
 
 /*
  * Deal-in lives on these wrappers (never on the layoutId element). The resting transform is
- * defined here so the still variant and the end of the animation agree.
+ * defined here so the still variant and the end of the animation agree. The front wrapper never
+ * tilts: it carries the shared badge.
  */
 .intro-loader__deal {
   --dx: 0%;
   --dy: 0%;
   --s: 1;
+  --rot: 0deg;
   --delay: 0s;
   position: absolute;
   inset: 0;
-  transform: translate(var(--dx), var(--dy)) scale(var(--s));
+  transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(var(--s));
   animation: intro-loader-deal 0.7s var(--ease-out) var(--delay) backwards;
 }
 
@@ -125,6 +98,7 @@
   --dx: -24%;
   --dy: -5%;
   --s: 0.92;
+  --rot: -6deg;
   --delay: 0s;
   z-index: 0;
 }
@@ -133,6 +107,7 @@
   --dx: 24%;
   --dy: -2%;
   --s: 0.92;
+  --rot: 5deg;
   --delay: 0.08s;
   z-index: 0;
 }
@@ -151,21 +126,83 @@
   width: 100%;
   height: 100%;
   padding: 5%;
+  border: var(--line);
   border-radius: 6% / 4.2667%;
-  background: linear-gradient(180deg, #fff, var(--light));
-  box-shadow:
-    var(--shadow-2),
-    inset 0 0 0 1px rgb(5 10 61 / 0.12);
+  background: var(--paper);
+  box-shadow: var(--pop-2);
 }
 
 .intro-loader__card img {
   display: block;
   width: 100%;
   height: 100%;
+  border: var(--line-thin);
   border-radius: 4.5% / 3.2%;
   object-fit: cover;
   object-position: 0 0;
-  box-shadow: 0 0 0 1px rgb(5 10 61 / 0.12);
+}
+
+/* ---------- Decorative stickers: pop in after the cards land, then bob ---------- */
+
+.intro-loader__sticker {
+  --sz: 24%;
+  --r: 0deg;
+  --delay: 0.55s;
+  position: absolute;
+  z-index: 2;
+  display: block;
+  width: var(--sz);
+  aspect-ratio: 1;
+  rotate: var(--r);
+  animation:
+    intro-loader-pop 0.6s var(--ease-spring) var(--delay) backwards,
+    intro-loader-bob 3.2s ease-in-out calc(var(--delay) + 0.7s) infinite;
+}
+
+.intro-loader__sticker svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  stroke: var(--ink);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+  filter: drop-shadow(2px 2px 0 var(--ink));
+}
+
+.intro-loader__sticker--grape-star {
+  --sz: 28%;
+  --r: -14deg;
+  top: -8%;
+  left: -17%;
+}
+
+.intro-loader__sticker--grape-star svg {
+  fill: var(--grape);
+}
+
+.intro-loader__sticker--lime-star {
+  --sz: 22%;
+  --r: 12deg;
+  --delay: 0.7s;
+  right: -15%;
+  bottom: 16%;
+}
+
+.intro-loader__sticker--lime-star svg {
+  fill: var(--lime);
+}
+
+.intro-loader__sticker--sky-dot {
+  --sz: 15%;
+  --delay: 0.85s;
+  bottom: -3%;
+  left: -12%;
+  box-sizing: border-box;
+  border: var(--line-thin);
+  border-radius: 50%;
+  background: var(--sky);
+  box-shadow: var(--pop-1);
 }
 
 /* ---------- Copy + progress ---------- */
@@ -177,39 +214,36 @@
 }
 
 .intro-loader__kicker {
-  margin: 0 0 8px;
-  color: var(--sun);
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
+  --kicker-bg: var(--lime);
+  margin: 0 0 14px;
 }
 
 .intro-loader__title {
   margin: 0 0 18px;
-  color: var(--light);
+  color: var(--ink);
   font-family: var(--display);
   font-size: clamp(1.55rem, 5vw, 2.1rem);
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .intro-loader__bar {
   position: relative;
-  height: 8px;
+  box-sizing: border-box;
+  height: 20px;
   overflow: hidden;
+  border: var(--line);
   border-radius: 999px;
-  background: rgb(255 244 226 / 0.2);
-  box-shadow: inset 0 1px 2px rgb(5 10 61 / 0.3);
+  background: var(--paper);
+  box-shadow: var(--pop-2);
 }
 
 .intro-loader__fill {
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  background: var(--sun);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4);
+  background: var(--lime);
   transform: scaleX(var(--intro-loader-progress, 0));
   transform-origin: left center;
   transition: transform 0.35s var(--ease-out);
@@ -220,20 +254,21 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
 .intro-loader__status {
   margin: 0;
-  color: var(--light-dim);
+  color: var(--ink);
   font-size: 0.84rem;
+  font-weight: 600;
   text-align: left;
 }
 
 .intro-loader__percent {
-  color: var(--light);
-  font-size: 0.84rem;
-  font-weight: 700;
+  color: var(--ink);
+  font-size: 0.9rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
 
@@ -242,7 +277,27 @@
 @keyframes intro-loader-deal {
   from {
     opacity: 0;
-    transform: translate(var(--dx), calc(var(--dy) + 36px)) scale(calc(var(--s) * 0.94));
+    transform: translate(var(--dx), calc(var(--dy) + 36px)) rotate(calc(var(--rot) - 8deg)) scale(calc(var(--s) * 0.94));
+  }
+}
+
+@keyframes intro-loader-pop {
+  from {
+    opacity: 0;
+    scale: 0.2;
+    rotate: calc(var(--r) - 40deg);
+  }
+}
+
+@keyframes intro-loader-bob {
+  50% {
+    translate: 0 -5px;
+  }
+}
+
+@keyframes intro-loader-drift {
+  to {
+    background-position: 30px 30px;
   }
 }
 

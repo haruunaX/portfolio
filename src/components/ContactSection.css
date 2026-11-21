@@ -1,18 +1,36 @@
 .contact {
+  position: relative;
   padding-bottom: calc(1.5rem + var(--dock-clearance));
   overflow-x: clip;
+  isolation: isolate;
 }
 
-/* Cobalt glow behind the content. */
-.contact::before {
+/* Flat sticker blobs behind the content: no gradients, no blur. */
+.contact::before,
+.contact::after {
   position: absolute;
   z-index: -1;
-  inset: 0;
   content: '';
   pointer-events: none;
-  background:
-    radial-gradient(60rem 36rem at 88% 12%, rgb(18 54 224 / 0.7), transparent 65%),
-    radial-gradient(40rem 28rem at 4% 96%, rgb(18 54 224 / 0.45), transparent 70%);
+  border-radius: 50%;
+}
+
+.contact::before {
+  top: -7rem;
+  right: -6rem;
+  width: clamp(14rem, 34vw, 26rem);
+  aspect-ratio: 1;
+  background: var(--grape);
+  opacity: 0.4;
+}
+
+.contact::after {
+  bottom: 5rem;
+  left: -3rem;
+  width: clamp(7rem, 16vw, 12rem);
+  aspect-ratio: 1;
+  background: var(--pink);
+  opacity: 0.28;
 }
 
 .contact__grid {
@@ -35,7 +53,7 @@
 .contact__links {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.9rem;
+  gap: 1.1rem;
   margin-top: 2rem;
 }
 
@@ -47,30 +65,69 @@
   flex: none;
 }
 
+/* Ink shadows vanish on the ink surface, so the buttons here cast pink ones. */
+.contact .btn:not(:active):not(:disabled) {
+  box-shadow: 4px 4px 0 var(--pink);
+}
+
+.contact .btn:not(:active):not(:disabled):hover {
+  box-shadow: 7px 7px 0 var(--pink);
+}
+
+.contact .btn:focus-visible,
+.contact__top:focus-visible {
+  outline: 3px solid var(--lime);
+  outline-offset: 4px;
+}
+
 .contact__copy {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 0.9rem 1.1rem;
-  margin-top: 1.1rem;
+  margin-top: 1.4rem;
 }
 
 .contact__address {
   min-width: 0;
-  color: var(--light-dim);
+  color: var(--cream-dim);
   font-size: 0.95rem;
   overflow-wrap: anywhere;
 }
 
-/* Form */
+/* Form: a grape sticker panel. Buddy pokes up over its top edge. */
 .contact__form {
   display: grid;
   gap: 1.1rem;
+  margin-top: 3.75rem;
   padding: clamp(1.25rem, 3vw, 2rem);
-  border: 1px solid var(--line);
+  border: var(--line);
   border-radius: var(--r-lg);
-  background: rgb(12 22 96 / 0.55);
-  box-shadow: var(--shadow-2);
+  color: var(--cream);
+  background: var(--grape);
+  box-shadow: 9px 9px 0 var(--pink);
+}
+
+.contact__head {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: 2.5rem;
+  padding-right: 7.5rem;
+}
+
+.contact__hello {
+  margin: 0;
+  color: var(--cream);
+  font-size: clamp(1.3rem, 2.6vw, 1.65rem);
+  line-height: 1.1;
+}
+
+.contact__buddy {
+  position: absolute;
+  right: 0;
+  bottom: -0.25rem;
+  line-height: 0;
 }
 
 .contact__field {
@@ -79,9 +136,9 @@
 }
 
 .contact__field label {
-  color: var(--light);
+  color: var(--cream);
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.04em;
 }
 
@@ -90,15 +147,16 @@
   width: 100%;
   min-width: 0;
   padding: 0.8rem 1rem;
-  border: 1px solid rgb(255 244 226 / 0.28);
+  border: var(--line);
   border-radius: var(--r-sm);
-  color: var(--light);
-  background: var(--ink);
+  color: var(--ink);
+  background: var(--paper);
+  box-shadow: var(--pop-1);
   font-size: 1rem;
   line-height: 1.5;
   transition:
-    border-color 200ms ease,
-    box-shadow 200ms ease;
+    translate 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
 }
 
 .contact__field textarea {
@@ -108,9 +166,10 @@
 
 .contact__field input:focus,
 .contact__field textarea:focus {
-  border-color: var(--sun);
-  outline: 3px solid var(--sun);
+  outline: 4px solid var(--lime);
   outline-offset: 2px;
+  translate: -1px -1px;
+  box-shadow: var(--pop-2);
 }
 
 .contact__actions {
@@ -130,8 +189,9 @@
   min-height: 1.5em;
   min-width: 0;
   margin: 0;
-  color: var(--light);
+  color: var(--cream);
   font-size: 0.95rem;
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -144,7 +204,7 @@
   gap: 0.75rem 1.5rem;
   margin-top: clamp(3rem, 7vw, 5rem);
   padding-top: 1.5rem;
-  border-top: 1px solid var(--line);
+  border-top: 3px dashed var(--cream-dim);
 }
 
 .contact__foot p {
@@ -159,9 +219,17 @@
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  color: var(--sun);
-  font-weight: 650;
-  text-underline-offset: 0.25em;
+  color: var(--cream);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: var(--lime);
+  text-decoration-thickness: 3px;
+  text-underline-offset: 0.3em;
+  transition: text-decoration-thickness 160ms var(--ease-out);
+}
+
+.contact__top:hover {
+  text-decoration-thickness: 6px;
 }
 
 /* Spark layer: covers the section but never takes pointer events. */
@@ -172,4 +240,23 @@
   width: auto !important;
   height: auto !important;
   pointer-events: none;
+}
+
+@media (max-width: 480px) {
+  .contact__head {
+    padding-right: 6.5rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact__field input,
+  .contact__field textarea,
+  .contact__top {
+    transition: none;
+  }
+
+  .contact__field input:focus,
+  .contact__field textarea:focus {
+    translate: 0 0;
+  }
 }

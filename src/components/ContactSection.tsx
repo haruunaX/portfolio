@@ -1,15 +1,19 @@
-import { useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 import { motion } from 'motion/react'
 import { contact } from '../data/contact'
-import { FADE } from '../lib/motion'
+import { riseIn } from '../lib/motion'
 import { showToast } from '../lib/toast'
 import { useReducedMotion } from '../lib/useReducedMotion'
+import Buddy from './Buddy'
 import ClickSpark, { type ClickSparkHandle } from './reactbits/ClickSpark'
 import Magnet from './reactbits/Magnet'
 import './ContactSection.css'
 
 const FINE_POINTER_QUERY = '(hover: hover) and (pointer: fine)'
-const SPARK_COLORS = ['#ffd21f', '#ff6a1a', '#fff4e2']
+/** lime, pink, sky, cream */
+const SPARK_COLORS = ['#C6F432', '#FF4FA0', '#36C5F0', '#FFF6EC']
+/** How long Buddy cheers after a message goes out. */
+const CHEER_MS = 3000
 
 function subscribeFinePointer(onChange: () => void) {
   const query = window.matchMedia(FINE_POINTER_QUERY)
@@ -19,13 +23,6 @@ function subscribeFinePointer(onChange: () => void) {
 
 const getFinePointer = () => window.matchMedia(FINE_POINTER_QUERY).matches
 const getFinePointerServer = () => false
-
-const revealProps = {
-  initial: { opacity: 0, y: 24 },
-  whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, amount: 0.2 },
-  transition: FADE,
-} as const
 
 function ArrowIcon() {
   return (
@@ -41,10 +38,19 @@ export default function ContactSection() {
   const magnetOff = reduceMotion || !finePointer
 
   const [status, setStatus] = useState('')
+  // Counts successful sends while Buddy cheers; 0 means waving. A new send restarts the timer.
+  const [cheers, setCheers] = useState(0)
   const [sending, setSending] = useState(false)
   const sectionRef = useRef<HTMLElement>(null)
   const submitRef = useRef<HTMLButtonElement>(null)
   const sparkRef = useRef<ClickSparkHandle>(null)
+
+  // Buddy cheers for a few seconds after each successful send, then goes back to waving.
+  useEffect(() => {
+    if (!cheers) return
+    const timer = window.setTimeout(() => setCheers(0), CHEER_MS)
+    return () => window.clearTimeout(timer)
+  }, [cheers])
 
   const celebrate = () => {
     if (reduceMotion) return
@@ -81,6 +87,7 @@ export default function ContactSection() {
       if (!response.ok) throw new Error('Unable to send')
       form.reset()
       setStatus('Message sent. Thank you!')
+      setCheers((count) => count + 1)
       celebrate()
     } catch {
       setStatus(`Email me directly at ${contact.email}`)
@@ -101,29 +108,35 @@ export default function ContactSection() {
   return (
     <section id="contact" ref={sectionRef} className="section surface-ink contact" aria-labelledby="contact-title">
       <div className="wrap contact__grid">
-        <motion.div className="contact__intro" {...revealProps}>
+        <motion.div
+          className="contact__intro"
+          variants={riseIn(reduceMotion)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+        >
           <p className="kicker">05 · Say hello</p>
           <h2 id="contact-title" className="section-title">
-            Have a good idea? <em>Send it my way.</em>
+            Have a good idea? Send it <em>my way.</em>
           </h2>
           <p className="section-lede">I am open to thoughtful collaborations and tech conversations.</p>
 
           <div className="contact__links">
             <Magnet disabled={magnetOff} padding={90} magnetStrength={3} wrapperClassName="contact__magnet">
-              <a className="btn btn-sun" href={`mailto:${contact.email}`}>
+              <a className="btn btn-lime" href={`mailto:${contact.email}`}>
                 Email
                 <ArrowIcon />
               </a>
             </Magnet>
             <Magnet disabled={magnetOff} padding={90} magnetStrength={3} wrapperClassName="contact__magnet">
-              <a className="btn btn-ghost" href={contact.github} target="_blank" rel="noopener noreferrer">
+              <a className="btn btn-paper" href={contact.github} target="_blank" rel="noopener noreferrer">
                 GitHub
                 <ArrowIcon />
                 <span className="sr-only">(opens in a new tab)</span>
               </a>
             </Magnet>
             <Magnet disabled={magnetOff} padding={90} magnetStrength={3} wrapperClassName="contact__magnet">
-              <a className="btn btn-ghost" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
+              <a className="btn btn-paper" href={contact.linkedin} target="_blank" rel="noopener noreferrer">
                 LinkedIn
                 <ArrowIcon />
                 <span className="sr-only">(opens in a new tab)</span>
@@ -132,14 +145,27 @@ export default function ContactSection() {
           </div>
 
           <div className="contact__copy">
-            <button type="button" className="btn btn-ghost" onClick={copyEmail}>
+            <button type="button" className="btn btn-paper" onClick={copyEmail}>
               Copy email
             </button>
             <span className="contact__address">{contact.email}</span>
           </div>
         </motion.div>
 
-        <motion.form className="contact__form" onSubmit={handleSubmit} {...revealProps}>
+        <motion.form
+          className="contact__form"
+          onSubmit={handleSubmit}
+          variants={riseIn(reduceMotion)}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.2 }}
+        >
+          <div className="contact__head">
+            <p className="contact__hello hand">Drop me a note, Buddy will carry it over.</p>
+            <div className="contact__buddy">
+              <Buddy pose={cheers ? 'cheer' : 'wave'} size={104} />
+            </div>
+          </div>
           <div className="contact__field">
             <label htmlFor="contact-name">Name</label>
             <input id="contact-name" name="name" type="text" autoComplete="name" required />
@@ -153,7 +179,7 @@ export default function ContactSection() {
             <textarea id="contact-message" name="message" rows={5} required />
           </div>
           <div className="contact__actions">
-            <button ref={submitRef} type="submit" className="btn btn-sun" disabled={sending}>
+            <button ref={submitRef} type="submit" className="btn btn-lime" disabled={sending}>
               Send message
             </button>
             <p className="contact__status" aria-live="polite">
@@ -164,7 +190,7 @@ export default function ContactSection() {
       </div>
 
       <footer className="wrap contact__foot">
-        <p>Built by Hannah in Cebu.</p>
+        <p>Built by Hannah.</p>
         <a className="contact__top" href="#home">
           Back to top
         </a>

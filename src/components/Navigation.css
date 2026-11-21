@@ -1,4 +1,4 @@
-/* Floating dock + "Jump to" chip. Everything is scoped under .nav-layer. */
+/* Sticker dock + "Jump to" chip. Everything is scoped under .nav-layer. */
 .nav-layer {
   position: fixed;
   inset: 0;
@@ -23,29 +23,28 @@
   align-items: flex-end;
   padding: 0 12px;
   pointer-events: none;
-  animation: nav-rise 0.7s 0.2s var(--ease-out, ease-out) both;
+  animation: nav-rise 0.7s 0.2s var(--ease-spring) both;
 }
 @keyframes nav-rise {
   from {
     opacity: 0;
-    transform: translateY(26px);
+    transform: translateY(40px) scale(0.9);
   }
 }
 
+/* The dock is a paper pill; every item is a small sticker button inside it. */
 .nav-dock {
   position: relative;
   pointer-events: auto;
   display: flex;
   align-items: flex-end;
   gap: 8px;
-  height: 66px;
+  height: 72px;
   padding: 10px 12px;
-  background: var(--sun);
-  border-radius: 26px;
-  box-shadow:
-    0 22px 40px -14px rgba(5, 10, 61, 0.7),
-    0 0 0 3px rgba(5, 10, 61, 0.16),
-    inset 0 -4px 0 rgba(184, 143, 0, 0.45);
+  background: var(--paper);
+  border: var(--line);
+  border-radius: 28px;
+  box-shadow: var(--pop-2);
 }
 
 .nav-item {
@@ -55,37 +54,54 @@
   height: var(--nav-size, 46px);
   display: grid;
   place-items: center;
+  border: var(--line-thin);
   border-radius: 30%;
-  background: rgba(255, 255, 255, 0.4);
+  background: var(--cream);
   color: var(--ink);
+  box-shadow: var(--pop-1);
   text-decoration: none;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background-color 0.18s,
+    translate 0.16s var(--ease-out),
+    box-shadow 0.16s var(--ease-out);
 }
 .nav-item svg {
   width: 50%;
   height: 50%;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  transition: rotate 0.3s var(--ease-spring), scale 0.3s var(--ease-spring);
 }
 .nav-item:hover,
 .nav-item:focus-visible {
-  background: var(--light);
+  background: var(--sky);
+}
+.nav-item:hover svg,
+.nav-item:focus-visible svg {
+  rotate: -8deg;
+  scale: 1.1;
 }
 .nav-item:focus-visible {
-  outline: 3px solid var(--cobalt);
-  outline-offset: 2px;
+  outline: 3px solid var(--ink);
+  outline-offset: 3px;
+  box-shadow: var(--pop-1);
+}
+/* Press physics: the sticker sinks into its shadow. */
+.nav-item:active {
+  translate: 3px 3px;
+  box-shadow: 0 0 0 var(--ink);
 }
 .nav-item[aria-current='location'] {
-  background: var(--ink);
-  color: var(--sun);
+  background: var(--lime);
+  color: var(--ink);
 }
 .nav-item[aria-current='location']::after {
   content: '';
   position: absolute;
-  bottom: -8px;
+  bottom: -9px;
   left: 50%;
   width: 6px;
   height: 6px;
@@ -96,26 +112,38 @@
 
 .nav-tip {
   position: absolute;
-  bottom: calc(100% + 14px);
+  bottom: calc(100% + 16px);
   left: 50%;
   transform: translate(-50%, 6px) scale(0.9);
   background: var(--ink);
-  color: var(--light);
-  font: 600 13px/1.2 var(--body);
+  color: var(--cream);
+  font: 700 13px/1.2 var(--body);
   padding: 6px 12px;
+  border: var(--line-thin);
+  border-color: var(--cream);
   border-radius: 10px;
+  box-shadow: var(--pop-1);
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s, transform 0.2s var(--ease-out, ease-out);
+  transition: opacity 0.15s, transform 0.25s var(--ease-spring);
 }
+.nav-tip::before,
 .nav-tip::after {
   content: '';
   position: absolute;
   top: 100%;
   left: 50%;
+  border: solid transparent;
+}
+.nav-tip::before {
+  margin-left: -8px;
+  border-width: 8px;
+  border-top-color: var(--cream);
+}
+.nav-tip::after {
   margin-left: -5px;
-  border: 5px solid transparent;
+  border-width: 5px;
   border-top-color: var(--ink);
 }
 .nav-item:hover .nav-tip,
@@ -138,26 +166,33 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  height: 48px;
+  height: 50px;
   padding: 0 10px 0 16px;
-  border: 2px solid var(--sun);
+  border: var(--line);
   border-radius: 999px;
-  background: rgba(5, 10, 61, 0.94);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: var(--light);
-  font: 600 14px/1 var(--body);
+  background: var(--paper);
+  color: var(--ink);
+  font: 700 14px/1 var(--body);
   cursor: pointer;
-  box-shadow: 0 14px 30px -14px rgba(5, 10, 61, 0.8);
-  transition: background 0.2s, transform 0.2s var(--ease-out, ease-out);
+  box-shadow: var(--pop-2);
+  transition:
+    background-color 0.18s,
+    translate 0.16s var(--ease-out),
+    box-shadow 0.16s var(--ease-out);
 }
 .nav-chip:hover {
-  background: var(--ink);
-  transform: translateY(-2px);
+  background: var(--lime);
+  translate: -2px -2px;
+  box-shadow: var(--pop-3);
 }
 .nav-chip:focus-visible {
-  outline: 3px solid var(--light);
+  outline: 3px solid var(--ink);
   outline-offset: 3px;
+  box-shadow: var(--pop-2);
+}
+.nav-chip:active {
+  translate: 4px 4px;
+  box-shadow: 0 0 0 var(--ink);
 }
 .nav-chip-icon {
   display: none;
@@ -173,12 +208,13 @@
   gap: 4px;
 }
 .nav-chip kbd {
-  font: 700 12px/1 var(--body);
-  background: var(--light);
+  font: 800 12px/1 var(--body);
+  background: var(--cream);
   color: var(--ink);
   padding: 5px 8px;
-  border-radius: 7px;
-  box-shadow: 0 2px 0 rgba(5, 10, 61, 0.35);
+  border: var(--line-thin);
+  border-radius: 8px;
+  box-shadow: 0 2px 0 var(--ink);
 }
 
 /* ---------- Phones: bottom bar + round search button ---------- */
@@ -194,10 +230,9 @@
     justify-content: space-around;
     gap: 4px;
     padding: 8px 8px calc(8px + env(safe-area-inset-bottom, 0px));
-    border-radius: 22px 22px 0 0;
-    box-shadow:
-      0 -14px 30px -12px rgba(5, 10, 61, 0.6),
-      inset 0 3px 0 rgba(5, 10, 61, 0.16);
+    border-bottom: 0;
+    border-radius: 24px 24px 0 0;
+    box-shadow: none;
   }
   .nav-item {
     flex: 1 1 0;
@@ -214,23 +249,25 @@
   .nav-now {
     display: block;
     position: absolute;
-    bottom: calc(100% + 10px);
+    bottom: calc(100% + 12px);
     left: 50%;
     transform: translateX(-50%);
-    background: var(--sun);
+    rotate: -2deg;
+    background: var(--lime);
     color: var(--ink);
-    font: 700 13px/1 var(--body);
+    font: 800 13px/1 var(--body);
     padding: 8px 14px;
+    border: var(--line-thin);
     border-radius: 999px;
     white-space: nowrap;
     pointer-events: none;
-    box-shadow: 0 8px 18px -8px rgba(5, 10, 61, 0.7), 0 0 0 2px var(--ink);
-    animation: nav-now-in 0.25s var(--ease-out, ease-out);
+    box-shadow: var(--pop-1);
+    animation: nav-now-in 0.35s var(--ease-spring);
   }
   @keyframes nav-now-in {
     from {
       opacity: 0;
-      transform: translate(-50%, 6px);
+      transform: translate(-50%, 10px) scale(0.8);
     }
   }
 
@@ -238,10 +275,20 @@
     top: max(12px, env(safe-area-inset-top, 0px));
     right: 12px;
     bottom: auto;
-    width: 44px;
-    height: 44px;
+    width: 46px;
+    height: 46px;
     padding: 0;
     justify-content: center;
+    border: var(--line-thin);
+    box-shadow: var(--pop-1);
+  }
+  .nav-chip:hover {
+    translate: -1px -1px;
+    box-shadow: var(--pop-2);
+  }
+  .nav-chip:active {
+    translate: 3px 3px;
+    box-shadow: 0 0 0 var(--ink);
   }
   .nav-chip-icon {
     display: block;
@@ -261,8 +308,19 @@
   .nav-layer[data-hidden],
   .nav-layer[data-typing],
   .nav-item,
+  .nav-item svg,
   .nav-tip,
   .nav-chip {
     transition: none;
+  }
+  .nav-item:hover svg,
+  .nav-item:focus-visible svg {
+    rotate: none;
+    scale: none;
+  }
+  .nav-chip:hover,
+  .nav-chip:active,
+  .nav-item:active {
+    translate: none;
   }
 }

@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import type { MouseEvent, PointerEvent } from 'react'
 import { flushSync } from 'react-dom'
 import { motion } from 'motion/react'
+import type { Variants } from 'motion/react'
 import { projects } from '../data/portfolio'
 import type { Project } from '../data/portfolio'
-import { FADE, MORPH, STAGGER } from '../lib/motion'
+import { FADE, MORPH, STAGGER, riseIn } from '../lib/motion'
 import { useReducedMotion } from '../lib/useReducedMotion'
+import Buddy from './Buddy'
 import './WorkSection.css'
 
 type WorkSectionProps = {
@@ -13,25 +15,38 @@ type WorkSectionProps = {
   onOpen: (project: Project) => void
 }
 
-/** Tile look per grid slot, following the approved bento: ink, orange, sun, cobalt, ink. */
+/** Tile look per grid slot: paper, lime, sky, pink, cream. */
 const TILES = [
-  { tone: 'ink', layout: 'bleed', desc: true },
-  { tone: 'orange', layout: 'side', desc: false },
-  { tone: 'sun', layout: 'bleed', desc: false },
-  { tone: 'cobalt', layout: 'bleed', desc: true },
-  { tone: 'ink', layout: 'side', desc: true },
+  { tone: 'paper', layout: 'bleed', desc: true },
+  { tone: 'lime', layout: 'side', desc: false },
+  { tone: 'sky', layout: 'bleed', desc: false },
+  { tone: 'pink', layout: 'bleed', desc: true },
+  { tone: 'cream', layout: 'side', desc: true },
 ] as const
 
 /** How long a flattened tile stays flat after the case file closes, so the return morph lands cleanly. */
 const FLAT_HOLD_MS = 800
 
-/** Lights up the tile under a mouse cursor. Touch and pen input leave it off. */
-function trackSpotlight(event: PointerEvent<HTMLDivElement>) {
+/** Widest tilt, in degrees, a tile leans toward the cursor. */
+const MAX_TILT = 2.4
+
+/** Parent variants: only the stagger, the tiles carry the rise themselves. */
+const GRID_VARIANTS: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: STAGGER } },
+}
+
+/** Leans the tile toward a mouse cursor. Touch and pen input leave it level. */
+function trackTilt(event: PointerEvent<HTMLDivElement>) {
   if (event.pointerType !== 'mouse') return
   const tile = event.currentTarget
   const rect = tile.getBoundingClientRect()
-  tile.style.setProperty('--mx', `${event.clientX - rect.left}px`)
-  tile.style.setProperty('--my', `${event.clientY - rect.top}px`)
+  const side = (event.clientX - rect.left) / rect.width - 0.5
+  tile.style.setProperty('--tilt', `${(side * 2 * MAX_TILT).toFixed(2)}deg`)
+}
+
+function releaseTilt(event: PointerEvent<HTMLDivElement>) {
+  event.currentTarget.style.removeProperty('--tilt')
 }
 
 export default function WorkSection({ openNumber, onOpen }: WorkSectionProps) {
@@ -53,10 +68,12 @@ export default function WorkSection({ openNumber, onOpen }: WorkSectionProps) {
     onOpen(project)
   }
 
+  const tileRise = riseIn(reduceMotion)
+
   return (
     <section
       id="work"
-      className="section surface-cobalt work"
+      className="section surface-grape work"
       aria-labelledby="work-title"
       data-reduced={reduceMotion ? '' : undefined}
     >
@@ -68,18 +85,29 @@ export default function WorkSection({ openNumber, onOpen }: WorkSectionProps) {
           viewport={{ once: true, amount: 0.2 }}
           transition={FADE}
         >
-          <div>
+          <div className="work__headline">
             <p className="kicker">02 · Projects</p>
             <h2 id="work-title" className="section-title">
               Things I made instead of <em>sleeping</em>
             </h2>
           </div>
-          <p className="section-lede">
-            {projects.length} projects. Hover for the stack, click any tile to open its case file.
-          </p>
+          <div className="work__aside">
+            <p className="section-lede">
+              {projects.length} projects. Hover for the stack, click any tile to open its case file.
+            </p>
+            <div className="work__buddy">
+              <Buddy pose="point" size={100} />
+            </div>
+          </div>
         </motion.header>
 
-        <ul className="work__grid">
+        <motion.ul
+          className="work__grid"
+          variants={GRID_VARIANTS}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, amount: 0.08 }}
+        >
           {projects.map((project, index) => {
             const look = TILES[index] ?? TILES[0]
             const isOpen = openNumber === project.number
@@ -99,12 +127,13 @@ export default function WorkSection({ openNumber, onOpen }: WorkSectionProps) {
               <motion.li
                 key={project.number}
                 className={`work__item work__item--${index + 1}`}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.2 }}
-                transition={{ ...FADE, delay: Math.min(index, 3) * STAGGER }}
+                variants={tileRise}
               >
-                <div className={tileClass} onPointerMove={trackSpotlight}>
+                <div
+                  className={tileClass}
+                  onPointerMove={reduceMotion ? undefined : trackTilt}
+                  onPointerLeave={releaseTilt}
+                >
                   <div className="work-tile__meta">
                     <motion.span
                       className="work-tile__number"
@@ -132,7 +161,7 @@ export default function WorkSection({ openNumber, onOpen }: WorkSectionProps) {
                     layoutId={`project-media-${project.number}`}
                     layoutDependency={isOpen ? 'case-open' : 'case-closed'}
                     transition={MORPH}
-                    style={{ borderRadius: 20 }}
+                    style={{ borderRadius: 18 }}
                   >
                     <img
                       className="work-tile__img"
@@ -146,7 +175,7 @@ export default function WorkSection({ openNumber, onOpen }: WorkSectionProps) {
 
                   <ul className="work-tile__chips" aria-label={`${project.title} tech stack`}>
                     {project.stack.map((item) => (
-                      <li key={item} className="work-tile__chip">
+                      <li key={item} className="chip">
                         {item}
                       </li>
                     ))}
@@ -158,7 +187,7 @@ export default function WorkSection({ openNumber, onOpen }: WorkSectionProps) {
                         d="M7 17L17 7M9 7h8v8"
                         fill="none"
                         stroke="currentColor"
-                        strokeWidth="2.4"
+                        strokeWidth="2.6"
                         strokeLinecap="round"
                         strokeLinejoin="round"
                       />
@@ -176,7 +205,7 @@ export default function WorkSection({ openNumber, onOpen }: WorkSectionProps) {
               </motion.li>
             )
           })}
-        </ul>
+        </motion.ul>
       </div>
     </section>
   )

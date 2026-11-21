@@ -4,32 +4,24 @@
   bottom: calc(var(--dock-clearance) + env(safe-area-inset-bottom));
   z-index: 300;
   translate: -50% 0;
+  /* One shared cell: a new toast replaces the fading one in place instead of stacking under it. */
+  display: grid;
+  justify-items: center;
   pointer-events: none;
 }
 
+/* A lime sticker with an ink outline and a hard shadow. Entry motion comes from Toast.tsx. */
 .toast {
+  grid-area: 1 / 1;
   display: inline-block;
-  padding: 0.65rem 1.1rem;
+  padding: 0.6rem 1.15rem;
+  border: var(--line);
   border-radius: 999px;
   color: var(--ink);
-  background: var(--sun);
-  box-shadow: var(--shadow-2);
-  font-size: 0.9rem;
-  font-weight: 650;
+  background: var(--lime);
+  box-shadow: var(--pop-2);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 750;
   white-space: nowrap;
-  animation: toast-in 320ms var(--ease-spring) both;
-}
-
-@keyframes toast-in {
-  from {
-    opacity: 0;
-    translate: 0 12px;
-    scale: 0.94;
-  }
-
-  to {
-    opacity: 1;
-    translate: 0 0;
-    scale: 1;
-  }
 }

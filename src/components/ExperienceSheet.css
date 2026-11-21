@@ -1,4 +1,4 @@
-/* Experience detail sheet (Moalboal).
+/* Experience detail sheet.
    The scroller is the only scroll container and nothing above the surface clips,
    so the card can morph into the sheet without being cut off mid-flight. */
 
@@ -11,9 +11,7 @@
 .experience-sheet__backdrop {
   position: absolute;
   inset: 0;
-  background: rgb(5 10 61 / 0.72);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgb(27 16 53 / 0.6);
 }
 
 .experience-sheet__scroller {
@@ -32,21 +30,19 @@
   width: min(920px, 100%);
   min-width: 0;
   margin: auto;
-  color: var(--light);
+  color: var(--ink);
   font-family: var(--body);
   outline: none;
 }
 
+/* Carries the layoutId: no transform, tilt or scale. */
 .experience-sheet__surface {
   position: absolute;
   inset: 0;
   z-index: 0;
-  border: 1px solid var(--line);
-  background:
-    radial-gradient(60% 40% at 100% 0, rgb(255 106 26 / 0.22), transparent 70%),
-    radial-gradient(50% 36% at 0 0, rgb(18 54 224 / 0.45), transparent 72%),
-    var(--ink-2);
-  box-shadow: var(--shadow-3);
+  border: var(--line);
+  background: var(--cream);
+  box-shadow: var(--pop-3);
 }
 
 .experience-sheet__content {
@@ -65,37 +61,44 @@
   height: 0;
 }
 
+/* Round sticker close button. It sits on the dialog, not on the morph surface. */
 .experience-sheet__close {
   display: grid;
   flex: none;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.9rem;
+  height: 2.9rem;
   margin: -0.5rem -0.5rem 0 0;
   padding: 0;
   place-items: center;
-  border: 1px solid var(--line);
+  border: var(--line);
   border-radius: 999px;
-  color: var(--light);
-  background: var(--ink);
+  color: var(--ink);
+  background: var(--pink);
+  box-shadow: var(--pop-1);
   cursor: pointer;
   transition:
-    background-color 0.2s var(--ease-out),
-    color 0.2s var(--ease-out);
+    rotate 0.25s var(--ease-spring),
+    translate 0.18s var(--ease-out),
+    box-shadow 0.18s var(--ease-out);
 }
 
 .experience-sheet__close:hover {
-  color: var(--ink);
-  background: var(--sun);
+  rotate: 90deg;
+}
+
+.experience-sheet__close:active {
+  translate: 3px 3px;
+  box-shadow: 0 0 0 var(--ink);
 }
 
 .experience-sheet__close:focus-visible,
 .experience-sheet__link:focus-visible {
-  outline: 3px solid var(--sun);
+  outline: 3px solid var(--grape);
   outline-offset: 3px;
 }
 
 .experience-sheet__head {
-  padding-right: 3rem;
+  padding-right: 3.25rem;
 }
 
 .experience-sheet__period {
@@ -105,10 +108,10 @@
   gap: 0.6rem;
   margin: 0;
   font-size: 0.8125rem;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--sun);
+  color: var(--ink);
 }
 
 .experience-sheet__now {
@@ -122,7 +125,7 @@
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  color: var(--light);
+  color: var(--ink);
   text-wrap: balance;
 }
 
@@ -131,10 +134,12 @@
 }
 
 .experience-sheet__company {
-  margin: 0.5rem 0 0;
-  font-size: 1.0625rem;
-  font-weight: 500;
-  color: var(--light-dim);
+  margin: 0.4rem 0 0;
+  font-family: var(--hand);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1.15;
+  color: var(--ink-dim);
 }
 
 .experience-sheet__body {
@@ -160,7 +165,7 @@
   margin: 0;
   font-size: 1.0625rem;
   line-height: 1.65;
-  color: var(--light);
+  color: var(--ink);
 }
 
 .experience-sheet__tags {
@@ -172,13 +177,13 @@
   list-style: none;
 }
 
-.experience-sheet__tags li {
-  padding: 0.35rem 0.8rem;
-  border: 1px solid rgb(255 210 31 / 0.55);
-  border-radius: 999px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--sun);
+/* Alternate chip colours by position, so the row reads as a sticker sheet. */
+.experience-sheet__tags li:nth-child(3n + 1) {
+  --chip-bg: var(--sky);
+}
+
+.experience-sheet__tags li:nth-child(3n + 2) {
+  --chip-bg: var(--lime);
 }
 
 @media (min-width: 760px) {
@@ -204,6 +209,7 @@
     border-bottom-right-radius: 0 !important;
     border-bottom-left-radius: 0 !important;
     border-bottom-width: 0;
+    box-shadow: none;
   }
 
   .experience-sheet__content {
@@ -214,5 +220,9 @@
 @media (prefers-reduced-motion: reduce) {
   .experience-sheet__close {
     transition: none;
+  }
+
+  .experience-sheet__close:hover {
+    rotate: none;
   }
 }

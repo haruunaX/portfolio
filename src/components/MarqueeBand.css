@@ -3,8 +3,8 @@
   width: 100%;
   overflow: hidden;
   padding-block: clamp(1.4rem, 3vw, 2.2rem);
-  /* Work (cobalt) above, Experience (ink) below. */
-  background: linear-gradient(to bottom, var(--cobalt) 50%, var(--ink) 50%);
+  /* Work (grape) above, Experience (cream) below. */
+  background: linear-gradient(to bottom, var(--grape) 50%, var(--cream) 50%);
 }
 
 .marquee__ribbon {
@@ -13,9 +13,9 @@
   overflow: hidden;
   white-space: nowrap;
   color: var(--ink);
-  background: var(--sun);
-  border-block: 3px solid var(--ink);
-  box-shadow: 0 18px 34px -18px rgb(5 10 61 / 0.7);
+  background: var(--lime);
+  border-block: var(--line);
+  box-shadow: 0 5px 0 var(--ink);
   transform: rotate(-2deg);
 }
 
@@ -23,7 +23,7 @@
   display: flex;
   width: max-content;
   padding-block: 0.9rem;
-  animation: marquee-run 40s linear infinite;
+  will-change: transform;
 }
 
 .marquee__word {
@@ -39,23 +39,25 @@
   letter-spacing: -0.02em;
 }
 
-.marquee__word::after {
-  content: '\2726';
-  color: var(--orange);
+.marquee__star {
+  flex: none;
+  width: 1.15em;
+  height: 1.15em;
+  animation: marquee-star-spin 7s linear infinite;
 }
 
-@keyframes marquee-run {
+@keyframes marquee-star-spin {
   to {
-    transform: translateX(-50%);
+    transform: rotate(360deg);
   }
 }
 
-.marquee--still .marquee__track {
-  animation-play-state: paused;
+.marquee--still .marquee__star {
+  animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .marquee__track {
-    animation-play-state: paused;
+  .marquee__star {
+    animation: none;
   }
 }

@@ -1,0 +1,40 @@
+.sticker {
+  position: relative;
+  display: inline-block;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.sticker--drag {
+  cursor: grab;
+  touch-action: none;
+}
+
+.sticker--drag:active {
+  cursor: grabbing;
+}
+
+.sticker__body {
+  display: inline-block;
+}
+
+.sticker__body--float {
+  animation: sticker-float var(--float-dur, 3.6s) ease-in-out var(--float-delay, 0s) infinite alternate;
+}
+
+.sticker img,
+.sticker svg {
+  display: block;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+
+@keyframes sticker-float {
+  from {
+    translate: 0 -3px;
+  }
+
+  to {
+    translate: 0 4px;
+  }
+}

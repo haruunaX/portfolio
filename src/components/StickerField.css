@@ -1,0 +1,141 @@
+/* The field covers the hero but lets clicks through; each sticker takes its own pointer events.
+   It sits above the copy so a dragged sticker can pass over it, yet rests only in free margins. */
+.stickerfield {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Never set transform/rotate on .sf: the Sticker component owns them. */
+.stickerfield .sf {
+  position: absolute;
+  pointer-events: auto;
+}
+
+.sf svg {
+  width: var(--sf-w, 64px);
+  height: auto;
+  overflow: visible;
+  /* White die-cut ring, then a hard ink shadow outside it. */
+  filter: var(--diecut) drop-shadow(3px 4px 0 var(--ink));
+}
+
+.sf__ink {
+  stroke: var(--ink);
+  stroke-width: 5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.sf__thin {
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-dasharray: 3 5;
+  stroke-linecap: round;
+}
+
+.sf__lime {
+  fill: none;
+  stroke: var(--lime);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sf__shine {
+  fill: none;
+  stroke: #fff;
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.sf__text {
+  font-family: var(--display);
+  font-weight: 800;
+  font-variation-settings: 'wdth' 90, 'wght' 800;
+}
+
+/* Phones and tablets: only the star and the bubble, tucked beside the name. The tag and the seal
+   would land on the badge, which stacks below the copy on these widths. */
+.sf--extra {
+  display: none;
+}
+
+.sf--star {
+  --sf-w: 52px;
+  --float-dur: 3.2s;
+  --float-delay: -0.6s;
+  top: 6.6rem;
+  right: 0.6rem;
+}
+
+.sf--bubble {
+  --sf-w: 70px;
+  --float-dur: 3.8s;
+  --float-delay: -1.4s;
+  top: 10.4rem;
+  right: 0.6rem;
+}
+
+.stickerfield .sf--tag,
+.stickerfield .sf--seal {
+  display: none;
+}
+
+/* Desktop: all seven, in the gutters between the columns and along the outer edges. */
+@media (min-width: 900px) {
+  .stickerfield .sf--extra,
+  .stickerfield .sf--tag,
+  .stickerfield .sf--seal {
+    display: inline-block;
+  }
+
+  .sf--star {
+    --sf-w: clamp(58px, 6vw, 92px);
+    top: 4%;
+    right: auto;
+    left: 50%;
+  }
+
+  .sf--bubble {
+    --sf-w: clamp(78px, 8vw, 122px);
+    top: 13%;
+    right: 0.8%;
+  }
+
+  .sf--tag {
+    --sf-w: clamp(64px, 6.5vw, 100px);
+    bottom: 8.25rem;
+    left: 38%;
+  }
+
+  /* Right-hand gutter between the sparkle and the cap, clear of the Cum Laude chip and the badge. */
+  .sf--seal {
+    --sf-w: clamp(58px, 5.6vw, 88px);
+    top: 60%;
+    right: 1.4%;
+  }
+
+  .sf--cap {
+    --sf-w: clamp(62px, 6vw, 96px);
+    --float-dur: 4.1s;
+    --float-delay: -2s;
+    right: 1.2%;
+    bottom: 8.5rem;
+  }
+
+  .sf--sparkle {
+    --sf-w: clamp(44px, 4vw, 64px);
+    top: 46%;
+    right: 0.8%;
+  }
+
+  .sf--heart {
+    --sf-w: clamp(38px, 3.4vw, 54px);
+    --float-dur: 3.4s;
+    --float-delay: -0.9s;
+    top: 30%;
+    left: 54.5%;
+  }
+}

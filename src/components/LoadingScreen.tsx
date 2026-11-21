@@ -26,8 +26,15 @@ const MAX_WAIT_MS = 4400
 const MIN_VISIBLE_MS = 350
 
 const FONTS_KEY = '__document-fonts__'
-const FONT_FACES = ['700 1em "Bricolage Grotesque"', '400 1em Inter', '600 1em Inter']
+const FONT_FACES = ['700 1em "Bricolage Grotesque"', '800 1em "Bricolage Grotesque"', '600 1em Inter', '700 1em Inter']
 const FONT_SAMPLE = 'Hannah Sheen HS 0123456789'
+
+/** Decorative stickers that pop in around the badge stack; their look and place live in the CSS. */
+const STICKERS: readonly { name: string; shape: 'star' | 'dot' }[] = [
+  { name: 'grape-star', shape: 'star' },
+  { name: 'lime-star', shape: 'star' },
+  { name: 'sky-dot', shape: 'dot' },
+]
 
 /** Loads and decodes one image. Always settles (load, decode, or error). Returns cleanup. */
 function loadImage(src: string, onSettle: (ok: boolean) => void): () => void {
@@ -224,7 +231,7 @@ export default function LoadingScreen({
       <motion.button
         ref={skipRef}
         type="button"
-        className="intro-loader__skip"
+        className="btn btn-paper intro-loader__skip"
         onClick={skip}
         exit={fadeOut}
       >
@@ -260,10 +267,19 @@ export default function LoadingScreen({
               <BadgeFace />
             </motion.div>
           </div>
+          {STICKERS.map(({ name, shape }) => (
+            <motion.span key={name} className={`intro-loader__sticker intro-loader__sticker--${name}`} exit={fadeOut}>
+              {shape === 'star' ? (
+                <svg viewBox="0 0 24 24" aria-hidden="true">
+                  <polygon points="12,2 14.47,8.6 21.51,8.91 15.99,13.3 17.88,20.09 12,16.2 6.12,20.09 8.01,13.3 2.49,8.91 9.53,8.6" />
+                </svg>
+              ) : null}
+            </motion.span>
+          ))}
         </div>
 
         <motion.div className="intro-loader__copy" exit={fadeOut}>
-          <p className="intro-loader__kicker" aria-hidden="true">
+          <p className="kicker intro-loader__kicker" aria-hidden="true">
             Hannah Sheen · portfolio
           </p>
           <p id={titleId} className="intro-loader__title">

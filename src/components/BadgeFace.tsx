@@ -5,12 +5,11 @@ import './BadgeFace.css'
 /**
  * The ID badge face as plain DOM. Shared by the loader card and the hero poster, so every size
  * inside scales with the card width (container query units) and both look identical.
- * Decorative: the parent supplies the accessible name.
+ * It mirrors the card painted in Lanyard.tsx. Decorative: the parent supplies the accessible name.
  */
 export default function BadgeFace({ className }: { className?: string }) {
   return (
     <div className={className ? `badge-face ${className}` : 'badge-face'}>
-      <span className="badge-face__glow" />
       <span className="badge-face__slot" />
 
       <div className="badge-face__body">
@@ -32,12 +31,11 @@ export default function BadgeFace({ className }: { className?: string }) {
             {education.honors} · CTU {education.year}
           </span>
         </p>
-
-        <p className="badge-face__place">
-          <span className="badge-face__dot" />
-          Cebu, Philippines
-        </p>
       </div>
+
+      <svg className="badge-face__spark" viewBox="0 0 24 24" aria-hidden="true">
+        <polygon points="12,2 14.47,8.6 21.51,8.91 15.99,13.3 17.88,20.09 12,16.2 6.12,20.09 8.01,13.3 2.49,8.91 9.53,8.6" />
+      </svg>
 
       <div className="badge-face__band">
         <span>HS</span>

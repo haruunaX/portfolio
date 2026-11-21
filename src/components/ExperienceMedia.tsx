@@ -5,8 +5,8 @@ import { experiencePhotos } from '../data/experiencePhotos'
 import { MORPH } from '../lib/motion'
 import './ExperienceMedia.css'
 
-/** Matches --radius-md and --radius-sm. Motion needs numbers to correct radius distortion. */
-const COVER_RADIUS = 20
+/** Matches --r-md and --r-sm. Motion needs numbers to correct radius distortion. */
+const COVER_RADIUS = 18
 const THUMB_RADIUS = 12
 
 const SKIPPED_WORDS: Record<string, true> = {
@@ -48,6 +48,22 @@ export default function ExperienceMedia({ experience }: { experience: Experience
             {monogramFor(company)}
           </span>
           <span className="experience-media__company">{company}</span>
+          <svg
+            className="experience-media__sticker"
+            viewBox="0 0 24 24"
+            width="44"
+            height="44"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              d="M12 2.2l2.9 6.5 7.1.7-5.3 4.7 1.6 7-6.3-3.7-6.3 3.7 1.6-7L2 9.4l7.1-.7z"
+              fill="var(--lime)"
+              stroke="var(--ink)"
+              strokeWidth="2"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
         {import.meta.env.DEV && (
           <p className="experience-media__hint">
@@ -77,14 +93,6 @@ export default function ExperienceMedia({ experience }: { experience: Experience
           transition={MORPH}
           style={{ borderRadius: COVER_RADIUS }}
         >
-          <img
-            className="experience-media__backdrop"
-            src={photos[selected]}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-          />
           <img
             className="experience-media__image"
             src={photos[selected]}

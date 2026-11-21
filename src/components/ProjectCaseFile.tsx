@@ -180,7 +180,7 @@ function CaseFileDialog({
                 {previous && (
                   <button
                     type="button"
-                    className="case-file__nav"
+                    className="btn btn-paper case-file__nav"
                     aria-label="Previous project"
                     title="Previous project"
                     onClick={() => navigate(previous)}
@@ -191,7 +191,7 @@ function CaseFileDialog({
                 {next && (
                   <button
                     type="button"
-                    className="case-file__nav"
+                    className="btn btn-paper case-file__nav"
                     aria-label="Next project"
                     title="Next project"
                     onClick={() => navigate(next)}
@@ -202,7 +202,7 @@ function CaseFileDialog({
                 <button
                   ref={closeRef}
                   type="button"
-                  className="case-file__close"
+                  className="press case-file__close"
                   aria-label="Close"
                   onClick={onClose}
                 >
@@ -220,7 +220,7 @@ function CaseFileDialog({
                   layoutId={shared ? `project-media-${project.number}` : undefined}
                   layoutDependency="dialog"
                   transition={MORPH}
-                  style={{ borderRadius: 20 }}
+                  style={{ borderRadius: 18 }}
                   {...swapIn}
                 >
                   <img
@@ -266,12 +266,19 @@ function CaseFileDialog({
                 <Reveal order={3}>
                   <ul className="case-file__stack" aria-label="Tech stack">
                     {project.stack.map((item) => (
-                      <li key={item}>{item}</li>
+                      <li key={item} className="chip">
+                        {item}
+                      </li>
                     ))}
                   </ul>
                 </Reveal>
                 <Reveal order={4}>
-                  <a className="case-file__link" href={project.link} target="_blank" rel="noreferrer">
+                  <a
+                    className="btn btn-lime case-file__link"
+                    href={project.link}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
                     View on GitHub
                     <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
                       <path

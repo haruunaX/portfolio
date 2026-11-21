@@ -1,8 +1,9 @@
 # Hannah Sheen's portfolio
 
-A React + TypeScript portfolio in the "Moalboal Run" style: an electric cobalt base with sun,
-orange and coral accents, a school of sardines swimming around a 3D lanyard ID badge, a
-floating dock and command palette instead of a header, and shared element transitions.
+A React + TypeScript portfolio in the "Sticker pop" style: a hot pink base with grape, sky and
+lime accents, ink outlines and hard shadows on everything, draggable stickers around a 3D
+lanyard ID badge, a small mascot called Buddy, a floating dock and command palette instead of a
+header, and shared element transitions.
 
 ## Development
 
@@ -21,16 +22,24 @@ and a failed 3D download.
 
 ## Design system
 
-- `src/index.css` holds the tokens (`--cobalt`, `--ink`, `--light`, `--orange`, `--sun`,
-  `--coral`, radii, shadows, fonts) and the shared classes every section uses: `.wrap`,
-  `.section`, `.surface-cobalt`, `.surface-ink`, `.kicker`, `.section-title` (an `<em>` inside
-  becomes the Instrument Serif flourish), `.btn`, `.chip`.
-- Fonts: Bricolage Grotesque (display), Instrument Serif italic (one flourish word per
-  heading), Inter (body), loaded from Google Fonts in `index.html`.
-- Contrast rules: light text on cobalt or ink; ink text on sun or orange; coral is a graphic
-  accent only.
+- `src/index.css` holds the tokens (`--pink`, `--grape`, `--sky`, `--lime`, `--ink`, `--cream`,
+  `--paper`, the `--line` outlines, the hard `--pop-1/2/3` shadows, radii, fonts) and the shared
+  classes every section uses: `.wrap`, `.section`, the surfaces (`.surface-pink`,
+  `.surface-cream`, `.surface-grape`, `.surface-sky`, `.surface-ink`), `.kicker`,
+  `.section-title` (an `<em>` inside becomes a tilted lime sticker block, like `.hl`), `.hand`
+  (handwritten notes), `.btn` with `.btn-lime/.btn-pink/.btn-sky/.btn-paper`, `.press` (lift on
+  hover, press flat on click) and `.chip`.
+- Fonts: Bricolage Grotesque (display, variable width and weight), Caveat (handwritten notes),
+  Inter (body), loaded from Google Fonts in `index.html`.
+- Contrast rules: ink text on pink, sky, lime, cream and white; cream text on grape and ink.
+  Pink never carries text.
+- Shared pieces: `Sticker` (a die-cut sticker that slaps in and bobs; on mouse and trackpad it can
+  be dragged around inside a container, or with `snapBack` it springs home when let go) and
+  `Buddy` (the HS mascot: eyes follow the cursor, it blinks,
+  hops when clicked and has wave, point, sign, cheer and peek poses).
 - Motion: shared element transitions use Motion `layoutId` with `MORPH` from
-  `src/lib/motion.ts`. The two sides of each pair carry different `layoutDependency` values,
+  `src/lib/motion.ts`, which also has the `POP` and `SETTLE` springs and the `slapIn` and
+  `riseIn` entrances. The two sides of each pair carry different `layoutDependency` values,
   otherwise Motion skips the morph. `App` wraps everything in `MotionConfig`, and
   `src/lib/useReducedMotion.ts` gives components the live reduced-motion preference.
 
@@ -42,14 +51,14 @@ page is made of section components, in order:
 
 | Section | Component | What it does |
 |---|---|---|
-| Hero (`#home`) | `Hero`, `Swarm`, `HeroBadge` + `Lanyard` | Name that gains weight near the cursor, Cum Laude chip, sardine school (canvas 2D) circling the 3D badge |
+| Hero (`#home`) | `Hero`, `StickerField`, `HeroBadge` + `Lanyard`, `Buddy` | Name that gains weight near the cursor, Cum Laude chip, draggable stickers, Buddy waving beside the 3D badge |
 | Navigation | `Navigation`, `CommandPalette` | Floating dock with scroll-spy; Ctrl/Cmd+K "Hey Hannah, where to?" palette |
-| About (`#about`) | `AboutSection` | Holographic Cum Laude ID card, bio, currently doing, skill chips |
+| About (`#about`) | `AboutSection` | Holographic Cum Laude ID card with a rosette sticker, Buddy holding a sign, bio, currently doing, a sheet of draggable skill stickers |
 | Work (`#work`) | `WorkSection`, `ProjectCaseFile` | Bento grid; tiles morph into case files with prev/next and extra screens |
-| Marquee | `MarqueeBand` | Tilted sun ribbon |
+| Marquee | `MarqueeBand` | Tilted lime ribbon that speeds up as you scroll |
 | Experience (`#experience`) | `ExperienceSection`, `ExperienceSheet`, `ExperienceMedia` | Stacking job cards; "Open file" morphs into a sheet with that role's photos |
 | Certificates (`#certificates`) | `CertificatesSection`, `CertificateLightbox` | Drag or arrow rail of 7 certificates; cards morph into the full view |
-| Contact (`#contact`) | `ContactSection` | Form posting to `/api/contact`, magnetic links, copy email, confetti on send |
+| Contact (`#contact`) | `ContactSection` | Form posting to `/api/contact`, magnetic links, copy email, confetti and a cheering Buddy on send |
 
 Third-party credits for the adapted React Bits components are in `THIRD_PARTY.md`.
 
@@ -84,7 +93,8 @@ an experience file, and a certificate, including closing mid-transition; focus m
 what opened it and page scrolling must come back.
 
 Check widths 320, 390, 768, 1024, 1440, and 1920px and toggle reduced motion before and after
-loading: the swarm becomes a still school, the dock stops magnifying, the marquee and tilt stop,
-and morphs become instant. Check for horizontal overflow and clipped text.
+loading: stickers stop bobbing and only fade in, Buddy holds still, the dock stops magnifying,
+the marquee and tilt stop, and morphs become instant. Check for horizontal overflow and clipped
+text.
 
 Frontend checks do not send email or verify delivery through the contact API.

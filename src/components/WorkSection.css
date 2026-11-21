@@ -1,24 +1,10 @@
-/* Work section: Moalboal bento.
+/* Work section: sticker bento on grape.
    Nothing between a shared element (frame, title, number) and the viewport may clip or
-   transform it, so tiles use no overflow clip and no CSS transform on the shared elements. */
+   transform it, so tiles use no overflow clip, and the lift and tilt live on the tile only
+   and are cleared (.is-flat) before a case file opens. */
 
 .work {
-  background:
-    radial-gradient(900px 560px at 108% -8%, rgb(255 210 31 / 0.16), transparent 62%),
-    radial-gradient(760px 520px at -6% 46%, rgb(5 10 61 / 0.5), transparent 62%),
-    var(--cobalt);
-}
-
-.work::before {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  content: '';
-  pointer-events: none;
-  background-image: radial-gradient(rgb(255 244 226 / 0.16) 1.2px, transparent 1.6px);
-  background-size: 26px 26px;
-  -webkit-mask-image: linear-gradient(180deg, #000, transparent 55%);
-  mask-image: linear-gradient(180deg, #000, transparent 55%);
+  --kicker-bg: var(--lime);
 }
 
 .work__head {
@@ -30,9 +16,20 @@
   margin-bottom: clamp(1.75rem, 3vw, 2.4rem);
 }
 
-.work__head .section-lede {
+.work__aside {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+}
+
+.work__aside .section-lede {
   max-width: 19rem;
   margin: 0;
+}
+
+.work__buddy {
+  flex: none;
+  line-height: 0;
 }
 
 /* ---------- grid ---------- */
@@ -41,7 +38,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-auto-rows: minmax(292px, auto);
-  gap: 18px;
+  gap: 22px;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -80,14 +77,8 @@
 /* ---------- tile ---------- */
 
 .work-tile {
-  --bg: var(--ink);
-  --fg: var(--light);
-  --chip-bg: var(--sun);
-  --chip-fg: var(--ink);
-  --glow: rgb(70 110 255 / 0.55);
-  --ring: var(--sun);
-  --tile-shadow: 0 14px 30px -18px rgb(5 10 61 / 0.8);
-  --tile-shadow-lift: 0 34px 50px -20px rgb(5 10 61 / 0.9);
+  --bg: var(--paper);
+  --chip-bg: var(--lime);
 
   position: relative;
   isolation: isolate;
@@ -95,58 +86,64 @@
   flex: 1;
   flex-direction: column;
   min-width: 0;
-  padding: 24px 26px 22px;
-  border-radius: 32px;
-  color: var(--fg);
+  padding: 22px 24px 20px;
+  border: var(--line);
+  border-radius: var(--r-lg);
+  color: var(--ink);
   background: var(--bg);
-  box-shadow: var(--tile-shadow);
+  box-shadow: var(--pop-2);
   transition:
-    transform 0.45s var(--ease-out),
-    box-shadow 0.45s var(--ease-out);
+    translate 0.3s var(--ease-spring),
+    rotate 0.3s var(--ease-out),
+    box-shadow 0.3s var(--ease-out);
 }
 
-.work-tile--ink {
-  border: 1px solid rgb(255 244 226 / 0.14);
+.work-tile--paper {
+  --bg: var(--paper);
+  --chip-bg: var(--lime);
 }
 
-.work-tile--orange {
-  --bg: var(--orange);
-  --fg: var(--ink);
-  --chip-bg: var(--ink);
-  --chip-fg: var(--light);
-  --glow: rgb(255 255 255 / 0.5);
-  --ring: var(--ink);
+.work-tile--lime {
+  --bg: var(--lime);
+  --chip-bg: var(--paper);
 }
 
-.work-tile--sun {
-  --bg: var(--sun);
-  --fg: var(--ink);
-  --chip-bg: var(--ink);
-  --chip-fg: var(--sun);
-  --glow: rgb(255 106 26 / 0.45);
-  --ring: var(--ink);
+.work-tile--sky {
+  --bg: var(--sky);
+  --chip-bg: var(--lime);
 }
 
-.work-tile--cobalt {
-  --bg: linear-gradient(160deg, #1b3ff0, var(--cobalt-deep) 60%, #081f94);
-  --glow: rgb(130 165 255 / 0.5);
-  --tile-shadow:
-    inset 0 0 0 1.5px rgb(255 244 226 / 0.35), 0 14px 30px -18px rgb(5 10 61 / 0.8);
-  --tile-shadow-lift:
-    inset 0 0 0 1.5px rgb(255 244 226 / 0.5), 0 34px 50px -20px rgb(5 10 61 / 0.9);
+.work-tile--pink {
+  --bg: var(--pink);
+  --chip-bg: var(--paper);
 }
 
-/* Cursor spotlight: only fades in under a hovering mouse. */
+.work-tile--cream {
+  --bg: var(--cream);
+  --chip-bg: var(--sky);
+}
+
+/* Small white glint in the corner; it slides across on hover. */
 .work-tile::after {
   position: absolute;
-  inset: 0;
+  top: 14px;
+  left: 58%;
   z-index: 2;
-  border-radius: inherit;
+  width: 38px;
+  height: 9px;
+  border-radius: 999px;
   content: '';
   pointer-events: none;
+  background: #fff;
+  opacity: 0.85;
+  rotate: -20deg;
+  transition:
+    translate 0.5s var(--ease-out),
+    opacity 0.3s;
+}
+
+.work-tile--paper::after {
   opacity: 0;
-  background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 50%), var(--glow), transparent 70%);
-  transition: opacity 0.35s;
 }
 
 .work-tile__meta {
@@ -157,17 +154,22 @@
 }
 
 .work-tile__number {
-  display: inline-flex;
-  align-items: center;
-  padding: 7px 11px;
-  border: 1.5px solid currentColor;
-  font: 700 13px/1 var(--body);
-  letter-spacing: 0.1em;
+  display: inline-grid;
+  min-width: 2.6rem;
+  height: 2.6rem;
+  padding-inline: 0.45rem;
+  place-items: center;
+  border: var(--line-thin);
+  color: var(--ink);
+  background: var(--lime);
+  box-shadow: var(--pop-1);
+  font: 800 0.95rem/1 var(--display);
+  letter-spacing: 0.02em;
 }
 
 .work-tile__title {
   margin-top: 14px;
-  padding-right: 44px;
+  padding-right: 48px;
   font: 800 clamp(26px, 2.4vw, 34px) / 1 var(--display);
   letter-spacing: -0.03em;
   overflow-wrap: break-word;
@@ -181,8 +183,8 @@
 
 .work-tile__client {
   margin: 9px 0 0;
-  font: 600 13px/1.3 var(--body);
-  letter-spacing: 0.06em;
+  font: 700 12.5px/1.3 var(--body);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -201,8 +203,9 @@
   margin-top: auto;
   overflow: hidden;
   aspect-ratio: 16 / 10;
-  background: rgb(0 0 0 / 0.25);
-  box-shadow: 0 22px 40px -14px rgb(0 0 0 / 0.55);
+  border: var(--line);
+  background: var(--ink);
+  box-shadow: var(--pop-1);
 }
 
 .work-tile__img {
@@ -211,7 +214,7 @@
   height: 100%;
   object-fit: cover;
   object-position: left top;
-  transition: transform 0.8s var(--ease-out);
+  transition: scale 0.6s var(--ease-out);
 }
 
 .work-tile--4 .work-tile__img {
@@ -220,46 +223,44 @@
 
 .work-tile__go {
   position: absolute;
-  top: 22px;
-  right: 22px;
+  top: 18px;
+  right: 18px;
   z-index: 4;
   display: grid;
   width: 44px;
   height: 44px;
   place-items: center;
+  border: var(--line-thin);
   border-radius: 50%;
-  color: var(--chip-fg);
+  color: var(--ink);
   background: var(--chip-bg);
+  box-shadow: var(--pop-1);
   pointer-events: none;
-  transition: transform 0.45s var(--ease-out);
+  transition: rotate 0.4s var(--ease-spring);
 }
 
 .work-tile__chips {
   position: absolute;
-  bottom: 18px;
-  left: 26px;
+  bottom: 16px;
+  left: 24px;
   z-index: 4;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  max-width: calc(100% - 52px);
+  max-width: calc(100% - 48px);
   margin: 0;
   padding: 0;
   list-style: none;
   opacity: 0;
   transform: translateY(18px);
   transition:
-    opacity 0.35s,
-    transform 0.45s var(--ease-out);
+    opacity 0.3s,
+    transform 0.4s var(--ease-spring);
   pointer-events: none;
 }
 
-.work-tile__chip {
-  padding: 7px 11px;
-  border-radius: 999px;
-  color: var(--chip-fg);
-  background: var(--chip-bg);
-  font: 600 12px/1 var(--body);
+.work-tile__chips .chip {
+  font-size: 0.74rem;
   white-space: nowrap;
 }
 
@@ -274,11 +275,6 @@
   border-radius: inherit;
   background: none;
   cursor: pointer;
-}
-
-.work-tile__open:focus-visible {
-  outline: 3px solid var(--ring);
-  outline-offset: -7px;
 }
 
 /* Stack chips show on hover or keyboard focus. */
@@ -315,37 +311,45 @@
   max-width: calc(54% - 40px);
 }
 
-/* Hover lift (mouse devices): the tile moves, never the shared elements inside it. */
+/* Hover lift (mouse devices): the tile moves and leans, never the shared elements inside it. */
 @media (hover: hover) {
   .work:not([data-reduced]) .work-tile:not(.is-flat):is(:hover, :has(.work-tile__open:focus-visible)) {
-    transform: translateY(-9px) rotate(-0.4deg);
-    box-shadow: var(--tile-shadow-lift);
+    translate: -3px -4px;
+    rotate: var(--tilt, 0deg);
+    box-shadow: var(--pop-3);
   }
 
-  .work:not([data-reduced]) .work-tile--2:not(.is-flat):is(:hover, :has(.work-tile__open:focus-visible)),
-  .work:not([data-reduced]) .work-tile--4:not(.is-flat):is(:hover, :has(.work-tile__open:focus-visible)) {
-    transform: translateY(-9px) rotate(0.4deg);
-  }
-
-  .work-tile:not(.is-flat):hover::after {
-    opacity: 1;
+  .work:not([data-reduced]) .work-tile:not(.is-flat):is(:hover, :has(.work-tile__open:focus-visible))::after {
+    translate: 46px 0;
   }
 
   .work:not([data-reduced]) .work-tile:not(.is-flat):is(:hover, :has(.work-tile__open:focus-visible)) .work-tile__go {
-    transform: rotate(45deg) scale(1.12);
+    rotate: 45deg;
   }
 
   .work:not([data-reduced]) .work-tile:not(.is-flat):is(:hover, :has(.work-tile__open:focus-visible)) .work-tile__img {
-    transform: scale(1.05);
+    scale: 1.05;
   }
 }
 
 /* Cleared while the case file is open (and briefly after): no transition, no transform. */
-.work-tile.is-flat,
-.work-tile.is-flat .work-tile__img,
-.work-tile.is-flat .work-tile__go {
-  transform: none;
+.work .work-tile.is-flat {
+  translate: none;
+  rotate: none;
+  box-shadow: var(--pop-2);
   transition: none;
+}
+
+.work .work-tile.is-flat .work-tile__img,
+.work .work-tile.is-flat .work-tile__go,
+.work .work-tile.is-flat::after {
+  translate: none;
+  scale: none;
+  transition: none;
+}
+
+.work .work-tile.is-flat .work-tile__go {
+  rotate: none;
 }
 
 @media (hover: none) {
@@ -413,9 +417,14 @@
 }
 
 @media (max-width: 640px) {
+  .work__head,
+  .work__aside {
+    align-items: flex-start;
+  }
+
   .work__grid {
     grid-template-columns: minmax(0, 1fr);
-    gap: 16px;
+    gap: 20px;
   }
 
   .work__item--1,
@@ -431,7 +440,7 @@
   .work-tile--1 {
     flex-direction: column;
     gap: 0;
-    padding: 22px 20px 20px;
+    padding: 20px 18px 18px;
   }
 
   .work-tile--side .work-tile__meta,
@@ -452,8 +461,8 @@
   .work-tile__chips,
   .work-tile--side .work-tile__chips,
   .work-tile--1 .work-tile__chips {
-    left: 20px;
-    max-width: calc(100% - 40px);
+    left: 18px;
+    max-width: calc(100% - 36px);
   }
 }
 
@@ -473,4 +482,12 @@
 .work[data-reduced] .work-tile__go,
 .work[data-reduced] .work-tile__chips {
   transition: none;
+}
+
+/* Press flat: the tile drops onto its shadow (touch included). */
+.work:not([data-reduced]) .work-tile.work-tile.work-tile:not(.is-flat):active,
+.work[data-reduced] .work-tile.work-tile.work-tile:not(.is-flat):active {
+  translate: 3px 3px;
+  rotate: 0deg;
+  box-shadow: 0 0 0 var(--ink);
 }

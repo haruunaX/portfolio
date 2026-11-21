@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import type { MouseEvent, PointerEvent } from 'react'
+import type { CSSProperties, MouseEvent, PointerEvent } from 'react'
 import { motion } from 'motion/react'
 import { certificates } from '../data/portfolio'
 import type { Certificate } from '../data/portfolio'
-import { FADE, MORPH } from '../lib/motion'
+import { FADE, MORPH, STAGGER, riseIn } from '../lib/motion'
 import { useReducedMotion } from '../lib/useReducedMotion'
 import './CertificatesSection.css'
 
@@ -20,9 +20,8 @@ const MAX_TILT = 7
 
 type Edges = { start: boolean; end: boolean }
 
-function proofNumber(index: number) {
-  return `proof #${String(index + 1).padStart(2, '0')}`
-}
+/** Alternating resting tilt (degrees) for the wrapper; fixed per index, never random. */
+const REST_TILTS = [-2, 1.6, -1.2, 2.2] as const
 
 function CertificateCard({
   certificate,
@@ -38,6 +37,9 @@ function CertificateCard({
   onOpen: (selection: CertificateSelection) => void
 }) {
   const cardRef = useRef<HTMLButtonElement>(null)
+  const restRef = useRef<HTMLDivElement>(null)
+  const rest = REST_TILTS[index % REST_TILTS.length]
+  const stickerTilt = index % 2 === 0 ? 9 : -9
 
   function handlePointerMove(event: PointerEvent<HTMLButtonElement>) {
     const card = cardRef.current
@@ -61,6 +63,8 @@ function CertificateCard({
     card.style.setProperty('--tilt-x', '0deg')
     card.style.setProperty('--tilt-y', '0deg')
     card.style.setProperty('--sheen-o', '0')
+    // The resting tilt lives on the wrapper; drop it too so the image morph measures a level box.
+    restRef.current?.classList.add('certificates__tilt--flat')
   }, [])
 
   function handlePointerLeave() {
@@ -70,6 +74,9 @@ function CertificateCard({
     card.style.setProperty('--tilt-x', '0deg')
     card.style.setProperty('--tilt-y', '0deg')
     card.style.setProperty('--sheen-o', '0')
+    // Opening moves focus into the lightbox and blurs this card. Keep the wrapper level while its
+    // certificate is open, so the closing morph lands on a flat card; it tilts back on the next leave.
+    if (!isOpen) restRef.current?.classList.remove('certificates__tilt--flat')
   }
 
   function handleClick(event: MouseEvent<HTMLButtonElement>) {
@@ -80,44 +87,53 @@ function CertificateCard({
   }
 
   return (
-    <button
-      ref={cardRef}
-      type="button"
-      className="certificates__card"
-      onPointerMove={handlePointerMove}
-      onPointerLeave={handlePointerLeave}
-      onBlur={handlePointerLeave}
-      onClick={handleClick}
-      aria-label={`Open certificate: ${certificate.title}, ${certificate.issuer}`}
+    <div
+      ref={restRef}
+      className="certificates__tilt"
+      style={{ '--rest': `${rest}deg`, '--sticker-tilt': `${stickerTilt}deg` } as CSSProperties}
     >
-      <span className="certificates__sheen" aria-hidden="true" />
-      <span className="certificates__proof">{proofNumber(index)}</span>
-      <motion.img
-        className="certificates__image"
-        layoutId={`certificate-media-${index}`}
-        layoutDependency={isOpen ? 'cert-open' : 'cert-closed'}
-        transition={MORPH}
-        style={{ borderRadius: 12 }}
-        src={certificate.image}
-        alt=""
-        draggable={false}
-        loading="lazy"
-      />
-      <span className="certificates__meta">
-        <motion.strong
-          className="certificates__title"
-          layoutId={`certificate-title-${index}`}
+      <button
+        ref={cardRef}
+        type="button"
+        className="certificates__card"
+        onPointerMove={handlePointerMove}
+        onPointerLeave={handlePointerLeave}
+        onBlur={handlePointerLeave}
+        onClick={handleClick}
+        aria-label={`Open certificate: ${certificate.title}, ${certificate.issuer}`}
+      >
+        <span className="certificates__sheen" aria-hidden="true" />
+        <span className="certificates__proof">
+          <span>proof</span>
+          <span>#{String(index + 1).padStart(2, '0')}</span>
+        </span>
+        <motion.img
+          className="certificates__image"
+          layoutId={`certificate-media-${index}`}
           layoutDependency={isOpen ? 'cert-open' : 'cert-closed'}
           transition={MORPH}
-        >
-          {certificate.title}
-        </motion.strong>
-        <span className="certificates__issuer">{certificate.issuer}</span>
-        <span className="certificates__open" aria-hidden="true">
-          Open certificate <span className="certificates__arrow">→</span>
+          style={{ borderRadius: 12 }}
+          src={certificate.image}
+          alt=""
+          draggable={false}
+          loading="lazy"
+        />
+        <span className="certificates__meta">
+          <motion.strong
+            className="certificates__title"
+            layoutId={`certificate-title-${index}`}
+            layoutDependency={isOpen ? 'cert-open' : 'cert-closed'}
+            transition={MORPH}
+          >
+            {certificate.title}
+          </motion.strong>
+          <span className="certificates__issuer">{certificate.issuer}</span>
+          <span className="certificates__open" aria-hidden="true">
+            Open certificate <span className="certificates__arrow">→</span>
+          </span>
         </span>
-      </span>
-    </button>
+      </button>
+    </div>
   )
 }
 
@@ -198,7 +214,7 @@ export default function CertificatesSection({ openIndex, onOpen }: CertificatesS
   }
 
   return (
-    <section id="certificates" className="section surface-cobalt certificates" aria-labelledby="certificates-title">
+    <section id="certificates" className="section surface-sky certificates" aria-labelledby="certificates-title">
       <div className="wrap">
         <motion.div
           className="certificates__head"
@@ -242,18 +258,18 @@ export default function CertificatesSection({ openIndex, onOpen }: CertificatesS
           </div>
         </motion.div>
 
-        <motion.div
+        <div
           className="certificates__viewport"
           data-start={edges.start}
           data-end={edges.end}
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
-          transition={FADE}
         >
-          <ul
+          <motion.ul
             ref={railRef}
             role="list"
+            variants={{ hidden: {}, show: { transition: { staggerChildren: STAGGER } } }}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true, amount: 0.15 }}
             className={dragging ? 'certificates__rail certificates__rail--dragging' : 'certificates__rail'}
             aria-label="Certificates, newest first"
             onScroll={updateEdges}
@@ -269,7 +285,7 @@ export default function CertificatesSection({ openIndex, onOpen }: CertificatesS
             }}
           >
             {certificates.map((certificate, index) => (
-              <li key={certificate.title} className="certificates__item">
+              <motion.li key={certificate.title} className="certificates__item" variants={riseIn(reduced)}>
                 <CertificateCard
                   certificate={certificate}
                   index={index}
@@ -277,10 +293,10 @@ export default function CertificatesSection({ openIndex, onOpen }: CertificatesS
                   tilt={!reduced}
                   onOpen={onOpen}
                 />
-              </li>
+              </motion.li>
             ))}
-          </ul>
-        </motion.div>
+          </motion.ul>
+        </div>
       </div>
     </section>
   )

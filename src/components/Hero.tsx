@@ -3,9 +3,10 @@ import { motion } from 'motion/react'
 import type { Variants } from 'motion/react'
 import { contact } from '../data/contact'
 import { education } from '../data/portfolio'
-import { FADE } from '../lib/motion'
+import { FADE, POP, slapIn } from '../lib/motion'
+import Buddy from './Buddy'
 import HeroBadge from './HeroBadge'
-import Swarm from './Swarm'
+import StickerField from './StickerField'
 import './Hero.css'
 
 type HeroProps = {
@@ -16,10 +17,14 @@ type HeroProps = {
 
 const WORDS = ['Hannah', 'Sheen'] as const
 
-/** Weight range of the name letters and the pointer distance (px) that lifts a letter. */
-const WEIGHT_MIN = 440
+/** Name width axis, and the weight range of the letters plus the pointer distance (px) that lifts a letter. */
+const NAME_WIDTH = 80
+const WEIGHT_MIN = 520
 const WEIGHT_MAX = 800
 const WEIGHT_RADIUS = 300
+
+/** Fixed entrance tilts per letter index, so the pop is the same on every load. */
+const LETTER_TILT = [-12, 9, -7, 11, -9, 7] as const
 
 const degreeShort = education.degree.replace('Bachelor of Science in', 'BS')
 
@@ -31,6 +36,21 @@ const column: Variants = {
 const item: Variants = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: FADE },
+}
+
+const nameStagger: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.05, delayChildren: 0.1 } },
+}
+
+const letterPop: Variants = {
+  hidden: (index: number) => ({ opacity: 0, y: 44, scale: 0.5, rotate: LETTER_TILT[index % LETTER_TILT.length] }),
+  show: { opacity: 1, y: 0, scale: 1, rotate: 0, transition: POP },
+}
+
+const letterFade: Variants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: FADE },
 }
 
 export default function Hero({ introDone, reduceMotion, handoff }: HeroProps) {
@@ -85,7 +105,7 @@ export default function Hero({ introDone, reduceMotion, handoff }: HeroProps) {
         const diff = target - weight[i]
         if (Math.abs(diff) > 0.4) {
           weight[i] += diff * Math.min(1, 0.16 * f)
-          letters[i].style.fontVariationSettings = `"wght" ${weight[i].toFixed(0)}`
+          letters[i].style.fontVariationSettings = `"wdth" ${NAME_WIDTH}, "wght" ${weight[i].toFixed(0)}`
           busy = true
         }
       }
@@ -146,34 +166,23 @@ export default function Hero({ introDone, reduceMotion, handoff }: HeroProps) {
     }
   }, [reduceMotion])
 
+  const letterVariants = reduceMotion ? letterFade : letterPop
+  const noteVariants = slapIn(-5, reduceMotion, 1.1)
+  const buddyVariants = slapIn(0, reduceMotion, 0.9)
+
   return (
     <section
       ref={sectionRef}
       id="home"
-      className="section surface-cobalt hero"
+      className="section surface-pink hero"
       aria-labelledby="hero-title"
       data-still={reduceMotion ? '' : undefined}
     >
-      <div className="hero__rays" aria-hidden="true">
-        <i />
-        <i />
-        <i />
-      </div>
-
-      <div className="hero__swarm">
-        <Swarm reduceMotion={reduceMotion} />
-      </div>
+      <StickerField dragArea={sectionRef} show={introDone} />
 
       <div className="wrap hero__stage">
-        <motion.div
-          className="hero__copy"
-          data-swarm-avoid
-          variants={column}
-          initial="hidden"
-          animate={introDone ? 'show' : 'hidden'}
-        >
-          <motion.p className="hero__eyebrow" variants={item}>
-            <span className="hero__dot" aria-hidden="true" />
+        <motion.div className="hero__copy" variants={column} initial="hidden" animate={introDone ? 'show' : 'hidden'}>
+          <motion.p className="kicker hero__eyebrow" variants={item}>
             Developer. Organizer. Professional tab hoarder.
           </motion.p>
 
@@ -182,25 +191,35 @@ export default function Hero({ introDone, reduceMotion, handoff }: HeroProps) {
             ref={nameRef}
             className="hero__name"
             aria-label="Hannah Sheen"
-            variants={item}
+            variants={nameStagger}
             onAnimationComplete={() => recacheRef.current?.()}
           >
-            {WORDS.map((word) => (
-              <span className="hero__word" key={word} aria-hidden="true">
-                {[...word].map((ch, i) => (
-                  <span className="hero__letter" aria-hidden="true" key={i}>
-                    {ch}
-                  </span>
-                ))}
-              </span>
-            ))}
+            {WORDS.map((word, w) => {
+              const letters = [...word].map((ch, i) => (
+                <motion.span
+                  className="hero__letter"
+                  aria-hidden="true"
+                  key={i}
+                  custom={i}
+                  variants={letterVariants}
+                  onAnimationComplete={w === WORDS.length - 1 && i === word.length - 1 ? () => recacheRef.current?.() : undefined}
+                >
+                  {ch}
+                </motion.span>
+              ))
+              return (
+                <span className="hero__word" key={word} aria-hidden="true">
+                  {w === 1 ? <span className="hl hero__hl">{letters}</span> : letters}
+                </span>
+              )
+            })}
           </motion.h1>
 
           <motion.p className="hero__role" variants={item}>
-            IT Executive Assistant + full-stack <em className="serif">developer</em>
+            IT Executive Assistant + full-stack <span className="hand hero__role-word">developer</span>
           </motion.p>
 
-          <motion.div className="chip chip-sun hero__cred" variants={item}>
+          <motion.div className="chip chip-lime hero__cred" variants={item}>
             <span className="hero__star" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.4 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z" />
@@ -216,13 +235,13 @@ export default function Hero({ introDone, reduceMotion, handoff }: HeroProps) {
           </motion.p>
 
           <motion.div className="hero__buttons" variants={item}>
-            <a className="btn btn-sun" href="#work">
+            <a className="btn btn-lime" href="#work">
               See my work
               <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
             </a>
-            <a className="btn btn-ghost" href={contact.resumeUrl} target="_blank" rel="noopener noreferrer">
+            <a className="btn btn-paper" href={contact.resumeUrl} target="_blank" rel="noopener noreferrer">
               Open resume
             </a>
           </motion.div>
@@ -238,10 +257,33 @@ export default function Hero({ introDone, reduceMotion, handoff }: HeroProps) {
 
         <div className="hero__badge">
           <HeroBadge introDone={introDone} reduceMotion={reduceMotion} handoff={handoff} />
+
+          <motion.div
+            className="hero__note"
+            aria-hidden="true"
+            variants={noteVariants}
+            initial="hidden"
+            animate={introDone ? 'show' : 'hidden'}
+          >
+            <span className="hand hero__note-text">that&rsquo;s me!</span>
+            <svg className="hero__note-arrow" viewBox="0 0 90 64" focusable="false">
+              <path d="M6 7C30 2 62 12 80 46" />
+              <path d="M66 43l14 5 1-16" />
+            </svg>
+          </motion.div>
+
+          <motion.div
+            className="hero__buddy"
+            variants={buddyVariants}
+            initial="hidden"
+            animate={introDone ? 'show' : 'hidden'}
+          >
+            <Buddy pose="wave" size={110} />
+          </motion.div>
         </div>
       </div>
 
-      <p className="hero__caption">Moalboal sardine run · move to scatter · drag the badge</p>
+      <p className="hand hero__caption">Drag the stickers · swing the badge</p>
     </section>
   )
 }

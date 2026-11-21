@@ -1,4 +1,4 @@
-import { useEffect, type MouseEvent } from 'react'
+import { useEffect, type CSSProperties, type MouseEvent } from 'react'
 import { motion } from 'motion/react'
 import { experiences } from '../data/portfolio'
 import type { Experience } from '../data/portfolio'
@@ -12,11 +12,10 @@ type ExperienceSectionProps = {
   onOpen: (experience: Experience) => void
 }
 
-const TONES = ['sun', 'ink', 'orange'] as const
+const TONES = ['pink', 'sky', 'lime', 'paper'] as const
 
 /** Roles that are not the current one carry a short type tag derived from the role name. */
 function tagFor(experience: Experience) {
-  if (experience.current) return 'Current'
   const { role, tags } = experience
   if (/intern/i.test(role)) return 'Internship'
   if (/instructor/i.test(role)) return 'Instructor'
@@ -25,6 +24,8 @@ function tagFor(experience: Experience) {
   return tags[0]
 }
 
+/** Matches --r-lg. Motion needs a number to correct radius distortion during the morph. */
+const SURFACE_RADIUS = 26
 
 export default function ExperienceSection({ openId, onOpen }: ExperienceSectionProps) {
   const reduceMotion = useReducedMotion()
@@ -50,7 +51,7 @@ export default function ExperienceSection({ openId, onOpen }: ExperienceSectionP
   return (
     <section
       id="experience"
-      className={`section surface-ink experience${reduceMotion ? ' experience--still' : ''}`}
+      className={`section surface-cream experience${reduceMotion ? ' experience--still' : ''}`}
       aria-labelledby="experience-title"
     >
       <div className="wrap">
@@ -62,7 +63,9 @@ export default function ExperienceSection({ openId, onOpen }: ExperienceSectionP
           transition={FADE}
         >
           <div>
-            <span className="kicker">03 · Work log</span>
+            <span className="kicker" style={{ '--kicker-bg': 'var(--sky)' } as CSSProperties}>
+              03 · Work log
+            </span>
             <h2 id="experience-title" className="section-title">
               Places I have been <em>useful</em>
             </h2>
@@ -99,7 +102,7 @@ export default function ExperienceSection({ openId, onOpen }: ExperienceSectionP
                   layoutId={`experience-card-${experience.id}`}
                   layoutDependency={isOpen ? 'exp-open' : 'exp-closed'}
                   transition={MORPH}
-                  style={{ borderRadius: 36 }}
+                  style={{ borderRadius: SURFACE_RADIUS }}
                 />
                 <div className="experience__spark-clip" aria-hidden="true">
                   <span className="experience__spark" />
@@ -116,12 +119,12 @@ export default function ExperienceSection({ openId, onOpen }: ExperienceSectionP
                   </div>
                   <div className="experience__aside">
                     <div className="experience__marks">
-                      <span className="experience__tag">{tagFor(experience)}</span>
-                      {experience.current && <span className="experience__now">Now</span>}
+                      {!experience.current && <span className="chip experience__tag">{tagFor(experience)}</span>}
+                      {experience.current && <span className="chip chip-lime experience__now">Now</span>}
                     </div>
                     <button
                       type="button"
-                      className="experience__open"
+                      className="btn btn-paper experience__open"
                       aria-haspopup="dialog"
                       aria-label={`Open file: ${experience.role}, ${company}`}
                       onClick={(event) => open(experience, event)}

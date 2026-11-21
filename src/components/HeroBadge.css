@@ -3,7 +3,7 @@
  * clip (the loader handoff flies the card in from far away), so overflow stays visible here.
  *
  * Sizing contract with the 3D card (Lanyard.tsx CAMERA_*): the card is 66% of the stage height,
- * centred 51% from the top (top edge at 18%), and its width follows the 32 : 45 ratio.
+ * its top edge sits 32% down, and its width follows the 32 : 45 ratio.
  */
 .hero-badge {
   position: relative;
@@ -25,19 +25,45 @@
   }
 }
 
-/* Warm Sun glow behind the card on the cobalt hero, with a faint Orange bounce at the bottom left. */
-.hero-badge__sun {
+/* A flat sky sticker disc behind the card: ink outline, hard shadow, a dashed paper ring that turns. */
+.hero-badge__disc {
   position: absolute;
   top: 54%;
   left: 50%;
   z-index: 0;
-  width: 96cqh;
-  height: 96cqh;
-  transform: translate(-50%, -50%);
-  background:
-    radial-gradient(closest-side at 32% 76%, rgb(255 106 26 / 0.26), rgb(255 106 26 / 0)),
-    radial-gradient(closest-side, rgb(255 210 31 / 0.3), rgb(255 210 31 / 0));
+  box-sizing: border-box;
+  width: min(80cqh, 90cqw);
+  aspect-ratio: 1;
+  border: var(--line);
+  border-radius: 50%;
+  background: var(--sky);
+  box-shadow: var(--pop-3);
+  opacity: 0;
   pointer-events: none;
+  transform: translate(-50%, -50%) scale(0.55);
+  transition:
+    opacity 0.3s var(--ease-out),
+    transform 0.7s var(--ease-spring);
+}
+
+.hero-badge__disc::before {
+  content: '';
+  position: absolute;
+  inset: 7%;
+  border: 3px dashed var(--paper);
+  border-radius: 50%;
+  animation: hero-badge-ring 48s linear infinite;
+}
+
+.hero-badge[data-landed='true'] .hero-badge__disc {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+@keyframes hero-badge-ring {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ---------- DOM hardware: anchor rail and strap ---------- */
@@ -58,14 +84,14 @@
   position: absolute;
   top: 0;
   left: 50%;
+  box-sizing: border-box;
   width: clamp(44px, 11cqh, 66px);
   height: clamp(8px, 2.2cqh, 13px);
   transform: translateX(-50%);
+  border: 2px solid var(--ink);
   border-radius: 99px;
-  background: linear-gradient(180deg, #f4f6ff, #9aa4cf);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.6),
-    -2px 3px 6px rgb(5 10 61 / 0.4);
+  background: var(--paper);
+  box-shadow: 2px 3px 0 var(--ink);
 }
 
 .hero-badge__strap {
@@ -79,12 +105,11 @@
   overflow: hidden;
   opacity: 0;
   transition: opacity 0.4s var(--ease-out);
-  background:
-    linear-gradient(90deg, rgb(255 244 226 / 0.28) 0 10%, transparent 10% 90%, rgb(5 10 61 / 0.3) 90%),
-    linear-gradient(180deg, #ff7f3e, var(--orange));
+  /* Flat grape with a lighter edge on one side and a darker one on the other, like the 3D strap. */
+  background: var(--grape);
   box-shadow:
-    -2px 2px 5px rgb(5 10 61 / 0.35),
-    inset 0 0 0 1px rgb(5 10 61 / 0.18);
+    inset 2px 0 0 rgb(255 255 255 / 0.24),
+    inset -2px 0 0 var(--grape-deep);
 }
 
 /* Stitching along both edges, as on the 3D strap. */
@@ -95,33 +120,58 @@
   top: 0;
   bottom: 0;
   width: 0;
-  border-left: 1px dashed rgb(5 10 61 / 0.4);
+  border-left: 1px dashed rgb(255 246 236 / 0.55);
 }
 
 .hero-badge__strap::before {
-  left: 12%;
+  left: 16%;
 }
 
 .hero-badge__strap::after {
-  right: 12%;
+  right: 16%;
 }
 
-/* The same lettering as the 3D strap: light, uppercase, letter-spaced, running down the strap. */
+/* The same lettering as the 3D strap: cream, uppercase, letter-spaced, running down the strap. */
 .hero-badge__strap-text {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(3px, 0.9cqh, 6px);
   padding-top: 4px;
-  color: var(--light);
+  color: var(--cream);
   font-family: var(--display);
   font-size: clamp(5px, 1.5cqh, 10px);
   font-weight: 700;
   letter-spacing: 0.22em;
   line-height: 1;
   white-space: nowrap;
+}
+
+.hero-badge__strap-text > span {
   writing-mode: vertical-rl;
+}
+
+/* Vector star between the phrases (a clipped box, never a font glyph). */
+.hero-badge__strap-star {
+  display: block;
+  flex: none;
+  width: clamp(5px, 1.3cqh, 8px);
+  height: clamp(5px, 1.3cqh, 8px);
+  background: var(--cream);
+  clip-path: polygon(
+    50% 8.33%,
+    60.29% 35.83%,
+    89.63% 37.13%,
+    66.63% 55.42%,
+    74.5% 83.71%,
+    50% 67.5%,
+    25.5% 83.71%,
+    33.38% 55.42%,
+    10.38% 37.13%,
+    39.71% 35.83%
+  );
 }
 
 .hero-badge[data-landed='true'] .hero-badge__strap {
@@ -169,11 +219,23 @@
   pointer-events: auto;
 }
 
+/* Reduced motion (the live preference, mirrored as data-reduced): no idle loop, no pop. */
+.hero-badge[data-reduced='true'] .hero-badge__disc,
+.hero-badge[data-reduced='true'] .hero-badge__disc::before {
+  animation: none;
+  transition: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .hero-badge__hardware,
   .hero-badge__strap,
   .hero-badge__poster,
-  .hero-badge__canvas {
+  .hero-badge__canvas,
+  .hero-badge__disc {
     transition: none;
+  }
+
+  .hero-badge__disc::before {
+    animation: none;
   }
 }

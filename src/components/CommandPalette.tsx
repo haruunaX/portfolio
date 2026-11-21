@@ -2,7 +2,7 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState, useSyncEx
 import type { ChangeEvent, KeyboardEvent as ReactKeyboardEvent, ReactElement } from 'react'
 import { AnimatePresence, motion, useIsPresent } from 'motion/react'
 import { contact } from '../data/contact'
-import { FADE, MORPH } from '../lib/motion'
+import { FADE, MORPH, POP } from '../lib/motion'
 import { SECTIONS } from '../lib/sections'
 import type { SectionId } from '../lib/sections'
 import { showToast } from '../lib/toast'
@@ -78,7 +78,7 @@ const ICON_GITHUB = (
 
 const SECTION_KEYWORDS: Record<SectionId, string> = {
   home: 'top start hero landing badge',
-  about: 'bio story cum laude education cebu skills',
+  about: 'bio story cum laude education skills',
   work: 'projects ciudad archivist quiz odyssey lifewood pfc',
   experience: 'jobs internship lifewood camtastic career',
   certificates: 'learning trail google cisco nasa github',
@@ -88,6 +88,10 @@ const SECTION_KEYWORDS: Record<SectionId, string> = {
 type Group = 'Sections' | 'Actions'
 const GROUPS: readonly Group[] = ['Sections', 'Actions']
 
+/** Sticker colour of an option's icon square. Fixed per entry, so filtering never recolours rows. */
+type Tone = 'sky' | 'pink' | 'lime'
+const TONES: readonly Tone[] = ['sky', 'pink', 'lime']
+
 interface Entry {
   id: string
   group: Group
@@ -96,6 +100,7 @@ interface Entry {
   label: string
   hint: string
   keywords: string
+  tone: Tone
   icon: ReactElement
   /** Section entries scroll after the palette has closed; actions run inside the click. */
   section?: SectionId
@@ -115,13 +120,14 @@ function copyEmail() {
 
 const ENTRIES: readonly Entry[] = [
   ...SECTIONS.map(
-    (s): Entry => ({
+    (s, i): Entry => ({
       id: s.id,
       group: 'Sections',
       name: s.label,
       label: `Go to ${s.label}`,
       hint: `#${s.id}`,
       keywords: SECTION_KEYWORDS[s.id],
+      tone: TONES[i % TONES.length],
       icon: SECTION_ICONS[s.id],
       section: s.id,
     }),
@@ -133,6 +139,7 @@ const ENTRIES: readonly Entry[] = [
     label: 'Copy email',
     hint: contact.email,
     keywords: 'mail address contact',
+    tone: 'sky',
     icon: ICON_COPY,
     run: copyEmail,
   },
@@ -143,6 +150,7 @@ const ENTRIES: readonly Entry[] = [
     label: 'Open resume',
     hint: 'PDF, new tab',
     keywords: 'cv pdf download',
+    tone: 'pink',
     icon: ICON_RESUME,
     run: () => window.open(contact.resumeUrl, '_blank', 'noopener'),
   },
@@ -153,6 +161,7 @@ const ENTRIES: readonly Entry[] = [
     label: 'View GitHub',
     hint: contact.github.replace(/^https?:\/\//, ''),
     keywords: 'code repos git haruunax',
+    tone: 'lime',
     icon: ICON_GITHUB,
     run: () => window.open(contact.github, '_blank', 'noopener'),
   },
@@ -279,7 +288,9 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
     }
   }
 
-  const offstage = phone ? { y: '100%' } : { y: 14, scale: 0.97 }
+  // Reduced motion: plain fades only. Otherwise the panel slaps on (desktop) or slides up (phone).
+  const offstage = reduced ? { opacity: 0 } : phone ? { y: '100%' } : { y: 18, scale: 0.94, rotate: -2 }
+  const onstage = reduced ? { opacity: 1 } : phone ? { y: 0 } : { y: 0, scale: 1, rotate: 0 }
 
   return (
     <motion.div
@@ -298,9 +309,9 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
         aria-labelledby={`${uid}-title`}
         inert={!isPresent}
         initial={offstage}
-        animate={{ y: 0, scale: 1 }}
+        animate={onstage}
         exit={{ ...offstage, transition: FADE }}
-        transition={MORPH}
+        transition={reduced ? FADE : phone ? MORPH : POP}
       >
         <span className="cmdk-grab" aria-hidden="true" />
         <div className="cmdk-head">
@@ -354,7 +365,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
                   onMouseMove={() => i !== activeIndex && setActive(i)}
                   onClick={() => choose(i)}
                 >
-                  <span className="cmdk-ic">
+                  <span className="cmdk-ic" data-tone={entry.tone}>
                     <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                       {entry.icon}
                     </svg>
@@ -369,7 +380,7 @@ function PaletteDialog({ onClose }: { onClose: () => void }) {
           })}
           {!results.length && (
             <li role="presentation" className="cmdk-empty">
-              Nothing swims by that name. Try "work" or "email".
+              Nothing matches that. Try "work" or "email".
             </li>
           )}
         </ul>

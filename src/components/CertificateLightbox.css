@@ -1,4 +1,4 @@
-/* Certificate lightbox: ink surface, light text, sun kicker.
+/* Certificate lightbox: cream panel, ink outline, hard pop shadow, lime kicker sticker.
    The scroller is the only scroll container and the dialog has no overflow clip,
    so the shared image can travel from the card without being cut off mid-morph. */
 
@@ -11,9 +11,7 @@
 .cert-lightbox__backdrop {
   position: absolute;
   inset: 0;
-  background: rgb(5 10 61 / 0.78);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  background: rgb(27 16 53 / 0.6);
 }
 
 .cert-lightbox__scroller {
@@ -33,7 +31,7 @@
   max-width: 100%;
   min-width: 0;
   margin: auto;
-  color: var(--light);
+  color: var(--ink);
   font-family: var(--body);
   outline: none;
 }
@@ -42,13 +40,10 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  border: 1px solid var(--line);
+  border: var(--line);
   border-radius: var(--r-lg);
-  background:
-    radial-gradient(60% 38% at 100% 0, rgb(18 54 224 / 0.55), transparent 70%),
-    radial-gradient(40% 30% at 0 100%, rgb(255 106 26 / 0.16), transparent 70%),
-    var(--ink);
-  box-shadow: var(--shadow-3);
+  background: var(--cream);
+  box-shadow: var(--pop-3);
 }
 
 .cert-lightbox__content {
@@ -70,29 +65,37 @@
 .cert-lightbox__close {
   display: grid;
   flex: none;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 2.9rem;
+  height: 2.9rem;
   margin: 0.5rem 0.5rem 0 0;
   padding: 0;
   place-items: center;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  color: var(--light);
-  background: var(--ink);
-  box-shadow: var(--shadow-1);
+  border: var(--line);
+  border-radius: 50%;
+  color: var(--ink);
+  background: var(--lime);
+  box-shadow: var(--pop-1);
   cursor: pointer;
+  rotate: 6deg;
   transition:
-    background-color 0.2s var(--ease-out),
-    color 0.2s var(--ease-out);
+    rotate 0.25s var(--ease-spring),
+    translate 0.18s var(--ease-out),
+    box-shadow 0.18s var(--ease-out),
+    background-color 0.2s var(--ease-out);
 }
 
 .cert-lightbox__close:hover {
-  color: var(--ink);
-  background: var(--sun);
+  rotate: -6deg;
+  background: var(--paper);
+}
+
+.cert-lightbox__close:active {
+  translate: 2px 2px;
+  box-shadow: 0 0 0 var(--ink);
 }
 
 .cert-lightbox__close:focus-visible {
-  outline: 3px solid var(--sun);
+  outline: 3px solid var(--ink);
   outline-offset: 3px;
 }
 
@@ -104,9 +107,9 @@
   height: auto;
   max-height: 72vh;
   margin: 0 auto;
-  border: 1px solid var(--line);
-  background: rgb(255 244 226 / 0.06);
-  box-shadow: var(--shadow-2);
+  border: var(--line);
+  background: var(--paper);
+  box-shadow: var(--pop-2);
 }
 
 /* width: 0 with min-width: 100% stops a long title from widening the dialog past the image. */
@@ -120,20 +123,27 @@
 }
 
 .cert-lightbox__kicker {
+  width: fit-content;
   margin: 0;
-  color: var(--sun);
-  font-size: 0.78rem;
+  padding: 0.28rem 0.75rem;
+  border: var(--line-thin);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--lime);
+  box-shadow: var(--pop-1);
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  rotate: -2deg;
 }
 
 .cert-lightbox__title {
   margin: 0;
-  color: var(--light);
+  color: var(--ink);
   font-family: var(--display);
   font-size: clamp(1.25rem, 3vw, 1.75rem);
-  font-weight: 700;
+  font-weight: 750;
   letter-spacing: -0.02em;
   line-height: 1.15;
   overflow-wrap: break-word;
@@ -141,7 +151,7 @@
 
 .cert-lightbox__issuer {
   margin: 0;
-  color: var(--light-dim);
+  color: var(--ink-dim);
   font-size: 1rem;
   line-height: 1.5;
 }
@@ -155,5 +165,11 @@
 @media (prefers-reduced-motion: reduce) {
   .cert-lightbox__close {
     transition: none;
+  }
+
+  .cert-lightbox__close:hover,
+  .cert-lightbox__close:active {
+    rotate: 6deg;
+    translate: 0 0;
   }
 }

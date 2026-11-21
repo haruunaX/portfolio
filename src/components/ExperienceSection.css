@@ -1,8 +1,6 @@
 /* No overflow other than clip on this section or its ancestors: the cards are position: sticky. */
 .section.experience {
-  background:
-    radial-gradient(900px 600px at 10% 0%, rgb(18 54 224 / 0.5), transparent 60%),
-    var(--ink);
+  --hl: var(--pink);
 }
 
 .experience__head {
@@ -18,14 +16,18 @@
   margin: 1.25rem 0 0;
 }
 
+/* Big outlined counter, a sticker number. Decorative. */
 .experience__count {
   font-family: var(--display);
   font-size: clamp(5rem, 12vw, 10.5rem);
   font-weight: 800;
   line-height: 0.8;
   letter-spacing: -0.06em;
-  color: transparent;
-  -webkit-text-stroke: 2px var(--sun);
+  color: var(--paper);
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 6px 6px 0 var(--ink);
+  user-select: none;
 }
 
 .experience .scroll-stack__inner {
@@ -33,15 +35,15 @@
 }
 
 /* ---------- Card (ScrollStack item) ---------- */
+/* The outline and the shadow live on the morphing surface, so they travel with it into the sheet. */
 .experience .scroll-stack-card.experience__card {
   height: auto;
   min-height: 21rem;
   padding: 0;
-  border-radius: 36px;
+  border: 0;
+  border-radius: var(--r-lg);
   background: none;
-  box-shadow:
-    0 -20px 40px -20px rgb(5 10 61 / 0.6),
-    0 40px 60px -30px rgb(5 10 61 / 0.8);
+  box-shadow: none;
 }
 
 /* While a card is open (or opening) the stack scale, filter and dim are off. */
@@ -54,46 +56,40 @@
   opacity: 0 !important;
 }
 
-.experience__card--sun {
-  --fg: var(--ink);
-  --accent: var(--ink);
-  --surface: var(--sun);
-  --surface-line: transparent;
-  --pill-bg: var(--ink);
-  --pill-fg: var(--sun);
+.experience__card--pink {
+  --surface: var(--pink);
+  --spark: var(--ink);
 }
 
-.experience__card--ink {
-  --fg: var(--light);
-  --accent: var(--sun);
-  --surface: var(--ink-2);
-  --surface-line: rgb(255 244 226 / 0.18);
-  --pill-bg: var(--sun);
-  --pill-fg: var(--ink);
+.experience__card--sky {
+  --surface: var(--sky);
+  --spark: var(--ink);
 }
 
-.experience__card--orange {
-  --fg: var(--ink);
-  --accent: var(--ink);
-  --surface: var(--orange);
-  --surface-line: transparent;
-  --pill-bg: var(--ink);
-  --pill-fg: var(--sun);
+.experience__card--lime {
+  --surface: var(--lime);
+  --spark: var(--ink);
 }
 
-/* The morphing layer: nothing but a background, inset behind the content. */
+.experience__card--paper {
+  --surface: var(--paper);
+  --spark: var(--ink);
+}
+
+/* The morphing layer: nothing but a background and an outline, inset behind the content. */
 .experience__surface {
   position: absolute;
   inset: 0;
+  border: var(--line);
   background: var(--surface);
-  box-shadow: inset 0 0 0 1.5px var(--surface-line);
+  box-shadow: var(--pop-3);
 }
 
 .experience__spark-clip {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  border-radius: 36px;
+  border-radius: var(--r-lg);
   pointer-events: none;
 }
 
@@ -103,7 +99,7 @@
   bottom: -80px;
   width: 260px;
   height: 260px;
-  border: 34px solid var(--fg);
+  border: 34px solid var(--spark);
   border-radius: 50%;
   opacity: 0.08;
 }
@@ -116,7 +112,7 @@
   align-items: start;
   min-height: inherit;
   padding: clamp(1.4rem, 3vw, 2.2rem) clamp(1.4rem, 4vw, 2.6rem);
-  color: var(--fg);
+  color: var(--ink);
 }
 
 .experience__index {
@@ -125,7 +121,11 @@
   font-weight: 800;
   line-height: 0.8;
   letter-spacing: -0.06em;
-  color: var(--accent);
+  color: var(--paper);
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 4px 4px 0 var(--ink);
+  user-select: none;
 }
 
 .experience__when {
@@ -149,9 +149,9 @@
 
 .experience__company {
   margin: 0;
-  font-family: var(--serif);
-  font-size: clamp(1.4rem, 2.4vw, 1.9rem);
-  font-style: italic;
+  font-family: var(--hand);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 700;
   line-height: 1.1;
 }
 
@@ -177,80 +177,47 @@
 }
 
 .experience__tag {
-  padding: 0.65rem 0.9rem;
-  border: 1.5px solid currentColor;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .experience__now {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.55rem;
-  padding: 0.7rem 1.1rem;
-  border-radius: 999px;
-  color: var(--sun);
-  background: var(--ink);
-  font-family: var(--display);
-  font-size: 0.875rem;
-  font-weight: 800;
-  line-height: 1;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 .experience__now::before {
   content: '';
-  width: 0.6rem;
-  height: 0.6rem;
+  width: 0.55rem;
+  height: 0.55rem;
   border-radius: 50%;
-  background: var(--orange);
-  box-shadow: 0 0 0 0 var(--orange);
+  background: var(--ink);
+  box-shadow: 0 0 0 0 var(--ink);
   animation: experience-ping 1.8s ease-out infinite;
 }
 
 @keyframes experience-ping {
   70% {
-    box-shadow: 0 0 0 12px rgb(255 106 26 / 0);
+    box-shadow: 0 0 0 7px rgb(27 16 53 / 0);
   }
   100% {
-    box-shadow: 0 0 0 0 rgb(255 106 26 / 0);
+    box-shadow: 0 0 0 0 rgb(27 16 53 / 0);
   }
 }
 
 .experience__open {
-  display: inline-flex;
-  align-items: center;
   gap: 0.5rem;
-  padding: 0.85rem 1.3rem;
-  border: 0;
-  border-radius: 999px;
-  color: var(--pill-fg);
-  background: var(--pill-bg);
-  font-family: var(--body);
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    transform 0.2s var(--ease-out),
-    box-shadow 0.2s var(--ease-out);
 }
 
-.experience__open:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px -10px rgb(5 10 61 / 0.7);
+.experience__open span {
+  display: inline-block;
+  transition: translate 0.2s var(--ease-spring);
 }
 
-.experience__open:focus-visible {
-  outline: 3px solid var(--fg);
-  outline-offset: 3px;
+.experience__open:hover span {
+  translate: 2px -2px;
 }
 
 .experience--still .experience__now::before {
@@ -262,12 +229,12 @@
     animation: none;
   }
 
-  .experience__open {
+  .experience__open span {
     transition: none;
   }
 
-  .experience__open:hover {
-    transform: none;
+  .experience__open:hover span {
+    translate: none;
   }
 }
 

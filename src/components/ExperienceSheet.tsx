@@ -12,7 +12,7 @@ type ExperienceSheetProps = {
 }
 
 /** Matches --r-lg. Motion needs a number to correct radius distortion during the morph. */
-const SURFACE_RADIUS = 28
+const SURFACE_RADIUS = 26
 
 const FOCUSABLE = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
 
@@ -139,7 +139,7 @@ function SheetDialog({ experience, onClose }: { experience: Experience; onClose:
                 onClick={onClose}
               >
                 <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
-                  <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                  <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
                 </svg>
               </button>
             </Reveal>
@@ -147,7 +147,7 @@ function SheetDialog({ experience, onClose }: { experience: Experience; onClose:
             <Reveal order={1} className="experience-sheet__head">
               <p className="experience-sheet__period">
                 <span>{period}</span>
-                {current && <span className="chip chip-sun experience-sheet__now">Now</span>}
+                {current && <span className="chip chip-lime experience-sheet__now">Now</span>}
               </p>
               <h2 id={titleId} className="experience-sheet__role">
                 {role}
@@ -167,13 +167,15 @@ function SheetDialog({ experience, onClose }: { experience: Experience; onClose:
                 <Reveal order={4}>
                   <ul className="experience-sheet__tags" aria-label="Focus areas">
                     {tags.map((tag) => (
-                      <li key={tag}>{tag}</li>
+                      <li key={tag} className="chip">
+                        {tag}
+                      </li>
                     ))}
                   </ul>
                 </Reveal>
                 {article && (
                   <Reveal order={5}>
-                    <a className="btn btn-sun experience-sheet__link" href={article} target="_blank" rel="noreferrer">
+                    <a className="btn btn-lime experience-sheet__link" href={article} target="_blank" rel="noreferrer">
                       Read the CTU press article
                       <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" focusable="false">
                         <path

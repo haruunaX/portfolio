@@ -1,0 +1,261 @@
+/* Buddy, the mascot. Animations only run while the root carries .buddy--motion (not under reduced motion). */
+.buddy {
+  position: relative;
+  display: inline-block;
+  flex: none;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.buddy__hop,
+.buddy__lean,
+.buddy__breath {
+  width: 100%;
+  height: 100%;
+  transform-origin: 50% 100%;
+}
+
+.buddy__svg {
+  display: block;
+  overflow: visible;
+}
+
+.buddy__pupil {
+  transition: transform 90ms ease-out;
+}
+
+.buddy__eyes {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 70ms ease-in;
+}
+
+.buddy__eyes[data-blink='true'] {
+  transform: scaleY(0.08);
+}
+
+.buddy__bubble {
+  position: absolute;
+  bottom: 96%;
+  left: 56%;
+  z-index: 2;
+  padding: 0.3em 0.7em;
+  border: var(--line-thin);
+  border-radius: 14px 14px 14px 4px;
+  background: var(--paper);
+  box-shadow: var(--pop-1);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 0.95rem;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.buddy--flip .buddy__bubble {
+  right: 56%;
+  left: auto;
+  border-radius: 14px 14px 4px 14px;
+}
+
+/* ── Motion ─────────────────────────────────────────────────────────────── */
+
+.buddy--motion .buddy__breath {
+  animation: buddy-breathe 3.6s ease-in-out infinite alternate;
+}
+
+.buddy--motion .buddy__lean {
+  transition: transform 0.35s var(--ease-spring);
+}
+
+@media (hover: hover) {
+  .buddy--motion .buddy__lean:hover {
+    transform: rotate(-4deg) translateY(-2px);
+  }
+
+  .buddy--motion.buddy--flip .buddy__lean:hover {
+    transform: rotate(4deg) translateY(-2px);
+  }
+}
+
+.buddy--motion .buddy__bubble {
+  animation: buddy-pop 0.3s var(--ease-spring) both;
+  transform-origin: 0 100%;
+}
+
+.buddy--motion .buddy__arm--wave {
+  animation: buddy-wave 4.6s ease-in-out infinite;
+}
+
+.buddy--motion .buddy__arm--point {
+  animation: buddy-point 1.6s ease-in-out infinite;
+}
+
+.buddy--motion .buddy__arm--cheer-l {
+  animation: buddy-cheer-l 0.9s ease-in-out infinite alternate;
+}
+
+.buddy--motion .buddy__arm--cheer-r {
+  animation: buddy-cheer-r 0.9s ease-in-out infinite alternate;
+}
+
+.buddy--motion.buddy--cheer .buddy__svg {
+  transform-origin: 50% 100%;
+  animation: buddy-jump 1.4s ease-in-out infinite;
+}
+
+.buddy--motion.buddy--peek .buddy__glance {
+  animation: buddy-glance 5s ease-in-out infinite;
+}
+
+.buddy--motion.buddy--peek .buddy__breath {
+  animation: buddy-peek-bob 3.2s ease-in-out infinite alternate;
+}
+
+.buddy--motion .buddy__spark {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: buddy-spark 1.2s ease-in-out infinite;
+}
+
+@keyframes buddy-breathe {
+  from {
+    transform: scaleY(1);
+  }
+
+  to {
+    transform: scaleY(1.02);
+  }
+}
+
+@keyframes buddy-peek-bob {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(-3px);
+  }
+}
+
+/* Two or three waves, then a rest. */
+@keyframes buddy-wave {
+  0%,
+  34%,
+  100% {
+    transform: rotate(0deg);
+  }
+
+  4%,
+  16%,
+  28% {
+    transform: rotate(18deg);
+  }
+
+  10%,
+  22% {
+    transform: rotate(-8deg);
+  }
+}
+
+@keyframes buddy-point {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+
+  50% {
+    transform: translateX(4px) rotate(-3deg);
+  }
+}
+
+@keyframes buddy-cheer-l {
+  from {
+    transform: rotate(-6deg);
+  }
+
+  to {
+    transform: rotate(8deg);
+  }
+}
+
+@keyframes buddy-cheer-r {
+  from {
+    transform: rotate(6deg);
+  }
+
+  to {
+    transform: rotate(-8deg);
+  }
+}
+
+@keyframes buddy-jump {
+  0%,
+  45%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+
+  10% {
+    transform: translateY(0) scale(1.05, 0.93);
+  }
+
+  25% {
+    transform: translateY(-9px) scale(0.97, 1.05);
+  }
+
+  38% {
+    transform: translateY(0) scale(1.04, 0.95);
+  }
+}
+
+@keyframes buddy-glance {
+  0%,
+  12%,
+  100% {
+    transform: translate(0, 0);
+  }
+
+  22%,
+  40% {
+    transform: translate(-4px, 1px);
+  }
+
+  50%,
+  66% {
+    transform: translate(4px, -1px);
+  }
+
+  76%,
+  88% {
+    transform: translate(1px, 3px);
+  }
+}
+
+@keyframes buddy-spark {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.6) rotate(0deg);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15) rotate(18deg);
+  }
+}
+
+@keyframes buddy-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

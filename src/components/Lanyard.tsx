@@ -16,7 +16,6 @@ import * as THREE from 'three';
 
 import cardGLB from '../assets/lanyard/card.glb';
 import { education } from '../data/portfolio';
-import { badgePosition } from '../lib/badgePosition';
 
 extend({ MeshLineGeometry, MeshLineMaterial });
 
@@ -56,8 +55,8 @@ const FRONT_UV_RECT: UvRect = { x: 0, y: 0, w: 0.5, h: 0.755 };
 const BACK_UV_RECT: UvRect = { x: 0.5, y: 0, w: 0.5, h: 0.757 };
 
 /** Fonts that must be loaded before textures are painted, so no fallback face is baked in. */
-const FONT_LOADS = ['700 64px "Bricolage Grotesque"', '400 32px Inter', '600 32px Inter'];
-const FONT_SAMPLE = 'Hannah Sheen HS Cum Laude CTU 2026 Cebu, Philippines';
+const FONT_LOADS = ['700 64px "Bricolage Grotesque"', '800 64px "Bricolage Grotesque"', '600 32px Inter', '700 32px Inter'];
+const FONT_SAMPLE = 'Hannah Sheen HS Cum Laude CTU 2026 IT Executive Assistant Full-stack developer';
 
 /**
  * Camera placement for the hero stage. The card is 2.25 units tall and hangs with its centre
@@ -69,13 +68,19 @@ const CAMERA_POSITION: [number, number, number] = [0, -0.42, 9.7];
 const GRAVITY: [number, number, number] = [0, -40, 0];
 
 const COLORS = {
-  light: '#FFF4E2',
-  ink: '#050A3D',
-  inkMuted: '#3B4170',
-  cobalt: '#1236E0',
-  sun: '#FFD21F',
-  orange: '#FF6A1A'
+  cream: '#FFF6EC',
+  paper: '#FFFFFF',
+  ink: '#1B1035',
+  grape: '#6A2BFF',
+  grapeLight: '#8A5CFF',
+  grapeDeep: '#4F17D6',
+  pink: '#FF4FA0',
+  sky: '#36C5F0',
+  lime: '#C6F432'
 };
+/** Card geometry in BadgeFace cqi: the ink outline inside the edge, and the card's corner radius. */
+const CARD_EDGE = 1.4;
+const CARD_CORNER = 6;
 const FONT_DISPLAY = '"Bricolage Grotesque"';
 const FONT_BODY = 'Inter';
 
@@ -90,11 +95,6 @@ const ang = new THREE.Vector3();
 const rot = new THREE.Vector3();
 const dir = new THREE.Vector3();
 const smoothTarget = new THREE.Vector3();
-/** Scratch vector for projecting the card to the screen; kept apart from `vec`, which the drag code uses. */
-const projected = new THREE.Vector3();
-
-/** Card footprint in world units (the collider): half-diagonal is the swarm's orbit radius. */
-const CARD_HALF_DIAGONAL = Math.hypot(0.8, 1.125);
 
 /** Resolves once the badge fonts have loaded (or failed); never rejects. */
 function loadBadgeFonts(): Promise<unknown> {
@@ -102,12 +102,12 @@ function loadBadgeFonts(): Promise<unknown> {
   return Promise.allSettled(FONT_LOADS.map((face) => document.fonts.load(face, FONT_SAMPLE)));
 }
 
-function starPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, outer: number): void {
+function starPath(ctx: CanvasRenderingContext2D, cx: number, cy: number, outer: number, rotate = 0): void {
   const inner = outer * 0.42;
   ctx.beginPath();
   for (let i = 0; i < 10; i++) {
     const radius = i % 2 === 0 ? outer : inner;
-    const angle = -Math.PI / 2 + (i * Math.PI) / 5;
+    const angle = -Math.PI / 2 + rotate + (i * Math.PI) / 5;
     const px = cx + Math.cos(angle) * radius;
     const py = cy + Math.sin(angle) * radius;
     if (i === 0) ctx.moveTo(px, py);
@@ -131,27 +131,47 @@ function drawSpaced(ctx: CanvasRenderingContext2D, text: string, cx: number, y: 
   ctx.textAlign = align;
 }
 
-function paintSlot(ctx: CanvasRenderingContext2D, dark: boolean): void {
+/** The card slot: a solid ink pill. */
+function paintSlot(ctx: CanvasRenderingContext2D): void {
   const w = cqi(17);
   const h = cqi(3.4);
-  const x = DESIGN_W / 2 - w / 2;
-  const y = cqi(4.2);
-  ctx.save();
-  const fill = ctx.createLinearGradient(0, y, 0, y + h);
-  fill.addColorStop(0, dark ? 'rgba(0, 0, 0, 0.5)' : 'rgba(5, 10, 61, 0.5)');
-  fill.addColorStop(1, dark ? 'rgba(0, 0, 0, 0.3)' : 'rgba(5, 10, 61, 0.28)');
-  ctx.fillStyle = fill;
+  ctx.fillStyle = COLORS.ink;
   ctx.beginPath();
-  ctx.roundRect(x, y, w, h, h / 2);
+  ctx.roundRect(DESIGN_W / 2 - w / 2, cqi(4.2), w, h, h / 2);
   ctx.fill();
-  ctx.strokeStyle = dark ? 'rgba(255, 244, 226, 0.2)' : 'rgba(255, 255, 255, 0.8)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(x, y + 1, w, h, h / 2);
-  ctx.stroke();
-  ctx.restore();
 }
 
+/**
+ * Ink outline painted inside the card edge, then the card fill, then a clip to the inside, so
+ * everything after it is cut to the rounded card like the DOM face. Call inside save/restore.
+ */
+function paintCardBase(ctx: CanvasRenderingContext2D, fill: string): void {
+  const edge = cqi(CARD_EDGE);
+  ctx.fillStyle = COLORS.ink;
+  ctx.fillRect(0, 0, DESIGN_W, DESIGN_H);
+  ctx.beginPath();
+  ctx.roundRect(edge, edge, DESIGN_W - edge * 2, DESIGN_H - edge * 2, cqi(CARD_CORNER) - edge);
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.clip();
+}
+
+/** Pink spark sticker with an ink outline, overlapping the photo's corner. */
+function paintSpark(ctx: CanvasRenderingContext2D, cx: number, cy: number): void {
+  starPath(ctx, cx, cy, cqi(5.4), (12 * Math.PI) / 180);
+  ctx.fillStyle = COLORS.pink;
+  ctx.fill();
+  ctx.strokeStyle = COLORS.ink;
+  ctx.lineWidth = cqi(0.87);
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+}
+
+/*
+ * Front layout in BadgeFace cqi (card is 100 wide x 140.6 tall); BadgeFace.css mirrors it:
+ *   slot 4.2-7.6 | photo 11.5-77.5 | name 82.5-93.1 | role 94.7-105.7 | chip 109.7-116.3 |
+ *   band 124.6-140.6
+ */
 function paintFront(ctx: CanvasRenderingContext2D, rect: UvRect, portrait: PaintableImage | null): void {
   ctx.save();
   ctx.translate(rect.x, rect.y);
@@ -160,114 +180,96 @@ function paintFront(ctx: CanvasRenderingContext2D, rect: UvRect, portrait: Paint
   ctx.rect(0, 0, DESIGN_W, DESIGN_H);
   ctx.clip();
 
-  // Light card, lit from the top.
-  const bg = ctx.createLinearGradient(0, 0, 0, DESIGN_H);
-  bg.addColorStop(0, '#FFFFFF');
-  bg.addColorStop(0.35, COLORS.light);
-  bg.addColorStop(1, '#F7E7CB');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, DESIGN_W, DESIGN_H);
+  paintCardBase(ctx, COLORS.cream);
+  paintSlot(ctx);
 
-  // Soft Sun glow at the top.
-  const glow = ctx.createRadialGradient(DESIGN_W / 2, 0, 0, DESIGN_W / 2, 0, cqi(72));
-  glow.addColorStop(0, 'rgba(255, 210, 31, 0.36)');
-  glow.addColorStop(1, 'rgba(255, 210, 31, 0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, DESIGN_W, cqi(46));
-
-  paintSlot(ctx, false);
-
-  // Formal portrait in a rounded rectangle, top aligned.
+  // Photo window: ink outline, then the formal portrait inside it, top aligned.
   const px = cqi(7);
   const py = cqi(11.5);
   const pw = cqi(86);
-  const ph = cqi(62);
+  const ph = cqi(66);
+  const pr = cqi(5);
+  const bw = cqi(1.2);
+  ctx.fillStyle = COLORS.ink;
+  ctx.beginPath();
+  ctx.roundRect(px, py, pw, ph, pr);
+  ctx.fill();
   ctx.save();
   ctx.beginPath();
-  ctx.roundRect(px, py, pw, ph, cqi(5));
+  ctx.roundRect(px + bw, py + bw, pw - bw * 2, ph - bw * 2, pr - bw);
   ctx.clip();
-  ctx.fillStyle = '#FFFFFF';
+  ctx.fillStyle = COLORS.paper;
   ctx.fillRect(px, py, pw, ph);
   if (portrait) {
-    const scale = Math.max(pw / portrait.width, ph / portrait.height);
+    const iw = pw - bw * 2;
+    const ih = ph - bw * 2;
+    const scale = Math.max(iw / portrait.width, ih / portrait.height);
     const dw = portrait.width * scale;
-    ctx.drawImage(portrait, px + (pw - dw) / 2, py, dw, portrait.height * scale);
+    ctx.drawImage(portrait, px + bw + (iw - dw) / 2, py + bw, dw, portrait.height * scale);
   }
   ctx.restore();
-  ctx.strokeStyle = 'rgba(5, 10, 61, 0.14)';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.roundRect(px, py, pw, ph, cqi(5));
-  ctx.stroke();
+  paintSpark(ctx, cqi(86), cqi(76));
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Name, Ink, tightened like the DOM face (-0.02em).
+  // Name, ink, tightened like the DOM face (-0.02em).
   ctx.fillStyle = COLORS.ink;
-  ctx.font = `700 ${cqi(9.4)}px ${FONT_DISPLAY}`;
-  drawSpaced(ctx, 'Hannah Sheen', DESIGN_W / 2, cqi(83.4), -cqi(9.4) * 0.02);
+  ctx.font = `800 ${cqi(10)}px ${FONT_DISPLAY}`;
+  drawSpaced(ctx, 'Hannah Sheen', DESIGN_W / 2, cqi(87.8), -cqi(10) * 0.02);
 
-  // Role, two lines, Cobalt.
-  ctx.fillStyle = COLORS.cobalt;
-  ctx.font = `600 ${cqi(4.1)}px ${FONT_BODY}`;
-  ctx.fillText('IT Executive Assistant', DESIGN_W / 2, cqi(92.8));
-  ctx.fillText('Full-stack developer', DESIGN_W / 2, cqi(98.3));
+  // Role, two lines, grape.
+  ctx.fillStyle = COLORS.grape;
+  ctx.font = `700 ${cqi(4.1)}px ${FONT_BODY}`;
+  ctx.fillText('IT Executive Assistant', DESIGN_W / 2, cqi(97.45));
+  ctx.fillText('Full-stack developer', DESIGN_W / 2, cqi(102.95));
 
-  // Honors chip: solid Sun with an Ink star.
+  // Honors chip: lime with an ink outline, a hard ink shadow and an ink star.
   const label = `${education.honors} · CTU ${education.year}`;
-  ctx.font = `600 ${cqi(3.5)}px ${FONT_BODY}`;
+  ctx.font = `700 ${cqi(3.5)}px ${FONT_BODY}`;
   const textWidth = ctx.measureText(label).width;
+  const chipBorder = cqi(0.8);
   const starSize = cqi(3.6);
   const gap = cqi(1.6);
   const padLeft = cqi(2.4);
   const padRight = cqi(3);
-  const chipW = padLeft + starSize + gap + textWidth + padRight;
-  const chipH = cqi(6);
+  const chipW = chipBorder * 2 + padLeft + starSize + gap + textWidth + padRight;
+  const chipH = cqi(6.6);
   const chipX = DESIGN_W / 2 - chipW / 2;
-  const chipY = cqi(104.4);
-  ctx.fillStyle = COLORS.sun;
+  const chipY = cqi(109.7);
+  ctx.fillStyle = COLORS.ink;
+  ctx.beginPath();
+  ctx.roundRect(chipX + cqi(0.6), chipY + cqi(0.6), chipW, chipH, chipH / 2);
+  ctx.fill();
   ctx.beginPath();
   ctx.roundRect(chipX, chipY, chipW, chipH, chipH / 2);
   ctx.fill();
+  ctx.fillStyle = COLORS.lime;
+  ctx.beginPath();
+  ctx.roundRect(chipX + chipBorder, chipY + chipBorder, chipW - chipBorder * 2, chipH - chipBorder * 2, chipH / 2 - chipBorder);
+  ctx.fill();
   ctx.fillStyle = COLORS.ink;
-  starPath(ctx, chipX + padLeft + starSize / 2, chipY + chipH / 2, starSize / 2);
+  starPath(ctx, chipX + chipBorder + padLeft + starSize / 2, chipY + chipH / 2, starSize / 2);
   ctx.fill();
   ctx.textAlign = 'left';
-  ctx.fillText(label, chipX + padLeft + starSize + gap, chipY + chipH / 2 + 1);
+  ctx.fillText(label, chipX + chipBorder + padLeft + starSize + gap, chipY + chipH / 2 + 1);
 
-  // Location with an Orange dot.
-  ctx.font = `400 ${cqi(3.5)}px ${FONT_BODY}`;
-  const place = 'Cebu, Philippines';
-  const placeW = ctx.measureText(place).width;
-  const dot = cqi(1.8);
-  const placeGap = cqi(1.8);
-  const placeX = DESIGN_W / 2 - (dot + placeGap + placeW) / 2;
-  const placeY = cqi(115.5);
-  ctx.fillStyle = 'rgba(255, 106, 26, 0.22)';
-  ctx.beginPath();
-  ctx.arc(placeX + dot / 2, placeY, dot / 2 + cqi(0.6), 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = COLORS.orange;
-  ctx.beginPath();
-  ctx.arc(placeX + dot / 2, placeY, dot / 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = COLORS.inkMuted;
-  ctx.fillText(place, placeX + dot + placeGap, placeY + 1);
-
-  // Ink band with the Sun HS monogram.
-  const bandY = DESIGN_H - cqi(15);
+  // Grape band: ink rule on top, a lime star either side of the lime HS monogram.
+  const bandH = cqi(16);
+  const bandY = DESIGN_H - bandH;
+  const bandMid = bandY + cqi(8.6);
+  ctx.fillStyle = COLORS.grape;
+  ctx.fillRect(0, bandY, DESIGN_W, bandH);
   ctx.fillStyle = COLORS.ink;
-  ctx.fillRect(0, bandY, DESIGN_W, cqi(15));
-  ctx.fillStyle = COLORS.sun;
-  ctx.fillRect(0, bandY, DESIGN_W, cqi(0.8));
-  ctx.fillStyle = 'rgba(255, 210, 31, 0.45)';
-  ctx.fillRect(cqi(18), bandY + cqi(7.9), cqi(22), 1);
-  ctx.fillRect(cqi(60), bandY + cqi(7.9), cqi(22), 1);
-  ctx.fillStyle = COLORS.sun;
-  ctx.font = `700 ${cqi(6.4)}px ${FONT_DISPLAY}`;
+  ctx.fillRect(0, bandY, DESIGN_W, cqi(1.2));
+  ctx.fillStyle = COLORS.lime;
+  starPath(ctx, DESIGN_W / 2 - cqi(17), bandMid, cqi(2.08));
+  ctx.fill();
+  starPath(ctx, DESIGN_W / 2 + cqi(17), bandMid, cqi(2.08));
+  ctx.fill();
+  ctx.font = `800 ${cqi(6.4)}px ${FONT_DISPLAY}`;
   ctx.textAlign = 'center';
-  drawSpaced(ctx, 'HS', DESIGN_W / 2, bandY + cqi(8), cqi(0.8));
+  drawSpaced(ctx, 'HS', DESIGN_W / 2, bandMid, cqi(6.4) * 0.08);
 
   ctx.restore();
 }
@@ -280,67 +282,69 @@ function paintBack(ctx: CanvasRenderingContext2D, rect: UvRect): void {
   ctx.rect(0, 0, DESIGN_W, DESIGN_H);
   ctx.clip();
 
-  ctx.fillStyle = COLORS.ink;
-  ctx.fillRect(0, 0, DESIGN_W, DESIGN_H);
-  const glow = ctx.createRadialGradient(DESIGN_W / 2, 0, 0, DESIGN_W / 2, 0, cqi(80));
-  glow.addColorStop(0, 'rgba(18, 54, 224, 0.5)');
-  glow.addColorStop(1, 'rgba(18, 54, 224, 0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(0, 0, DESIGN_W, cqi(60));
-
-  paintSlot(ctx, true);
+  paintCardBase(ctx, COLORS.grape);
+  paintSlot(ctx);
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // HS monogram medallion.
+  // HS monogram medallion: lime disc, ink outline, hard ink shadow.
   const cx = DESIGN_W / 2;
   const cy = cqi(27);
-  ctx.fillStyle = COLORS.sun;
-  ctx.beginPath();
-  ctx.arc(cx, cy, cqi(12), 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = 'rgba(255, 210, 31, 0.55)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.arc(cx, cy, cqi(14), 0, Math.PI * 2);
-  ctx.stroke();
   ctx.fillStyle = COLORS.ink;
-  ctx.font = `700 ${cqi(9)}px ${FONT_DISPLAY}`;
+  ctx.beginPath();
+  ctx.arc(cx + cqi(1.2), cy + cqi(1.2), cqi(12.6), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(cx, cy, cqi(12.6), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = COLORS.lime;
+  ctx.beginPath();
+  ctx.arc(cx, cy, cqi(11.4), 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = COLORS.ink;
+  ctx.font = `800 ${cqi(9)}px ${FONT_DISPLAY}`;
   drawSpaced(ctx, 'HS', cx, cy + 2, cqi(0.8));
 
   // Kicker.
-  ctx.fillStyle = COLORS.sun;
-  ctx.font = `600 ${cqi(3.2)}px ${FONT_BODY}`;
+  ctx.fillStyle = COLORS.lime;
+  ctx.font = `700 ${cqi(3.2)}px ${FONT_BODY}`;
   drawSpaced(ctx, 'EDUCATION', cx, cqi(48), cqi(0.9));
 
   // Honors.
-  ctx.fillStyle = COLORS.sun;
-  ctx.font = `700 ${cqi(13.5)}px ${FONT_DISPLAY}`;
+  ctx.fillStyle = COLORS.lime;
+  ctx.font = `800 ${cqi(13.5)}px ${FONT_DISPLAY}`;
   ctx.fillText(education.honors, cx, cqi(61));
 
-  ctx.fillStyle = COLORS.orange;
-  ctx.fillRect(cx - cqi(9), cqi(71), cqi(18), 2);
+  ctx.fillStyle = COLORS.pink;
+  ctx.beginPath();
+  ctx.roundRect(cx - cqi(9), cqi(70.4), cqi(18), cqi(1.2), cqi(0.6));
+  ctx.fill();
 
   // Degree.
-  ctx.fillStyle = COLORS.light;
-  ctx.font = `400 ${cqi(4.5)}px ${FONT_BODY}`;
+  ctx.fillStyle = COLORS.cream;
+  ctx.font = `600 ${cqi(4.5)}px ${FONT_BODY}`;
   ctx.fillText('Bachelor of Science in', cx, cqi(80));
   ctx.fillText('Information Technology', cx, cqi(86.5));
 
   // School and year.
-  ctx.fillStyle = COLORS.sun;
-  ctx.font = `600 ${cqi(3.9)}px ${FONT_BODY}`;
-  ctx.fillText(`${education.school} · ${education.year}`, cx, cqi(97));
+  ctx.fillStyle = COLORS.lime;
+  ctx.font = `700 ${cqi(3.9)}px ${FONT_BODY}`;
+  ctx.fillText(education.school, cx, cqi(97));
+  ctx.fillStyle = COLORS.cream;
+  ctx.font = `600 ${cqi(3.5)}px ${FONT_BODY}`;
+  ctx.fillText(`Class of ${education.year}`, cx, cqi(103.4));
 
-  // Footer.
-  ctx.fillStyle = COLORS.orange;
-  starPath(ctx, cx - cqi(14), cqi(130), cqi(1.9));
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255, 244, 226, 0.78)';
-  ctx.font = `400 ${cqi(3.5)}px ${FONT_BODY}`;
-  ctx.textAlign = 'left';
-  ctx.fillText('Cebu, Philippines', cx - cqi(10.5), cqi(130) + 1);
+  // Footer: three outlined stars.
+  ctx.lineWidth = cqi(0.7);
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = COLORS.ink;
+  [COLORS.lime, COLORS.pink, COLORS.sky].forEach((colour, i) => {
+    starPath(ctx, cx + (i - 1) * cqi(9), cqi(128), cqi(3));
+    ctx.fillStyle = colour;
+    ctx.fill();
+    ctx.stroke();
+  });
 
   ctx.restore();
 }
@@ -366,9 +370,13 @@ function paintCardTexture(baseMap: THREE.Texture, portrait: PaintableImage | nul
   return texture;
 }
 
-const STRAP_PHRASE = 'HANNAH SHEEN · CEBU';
+/** Strap tile: the name and the honour, each followed by a vector star. Stars are paths, never font glyphs. */
+const STRAP_WORDS = ['HANNAH SHEEN', 'CUM LAUDE 2026'] as const;
+const STRAP_SPACING_EM = 0.1;
+const STRAP_STAR_EM = 0.56;
+const STRAP_GAP_EM = 0.5;
 
-/** Orange strap with the phrase repeated in Light. One tile is 4 : 1, matching the strap's proportions. */
+/** Grape strap with the phrase repeated in cream. One tile is 4 : 1, matching the strap's proportions. */
 function paintStrapTexture(anisotropy: number): THREE.CanvasTexture | null {
   const W = 1536;
   const H = 384;
@@ -378,47 +386,52 @@ function paintStrapTexture(anisotropy: number): THREE.CanvasTexture | null {
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
 
-  const base = ctx.createLinearGradient(0, 0, 0, H);
-  base.addColorStop(0, '#FF8040');
-  base.addColorStop(0.5, COLORS.orange);
-  base.addColorStop(1, '#E85A0F');
-  ctx.fillStyle = base;
+  ctx.fillStyle = COLORS.grape;
   ctx.fillRect(0, 0, W, H);
 
-  // Woven edges and stitching.
-  ctx.fillStyle = 'rgba(255, 244, 226, 0.22)';
-  ctx.fillRect(0, 0, W, 10);
-  ctx.fillRect(0, H - 10, W, 10);
-  ctx.strokeStyle = 'rgba(5, 10, 61, 0.4)';
+  // Woven edges: lighter on top, darker at the bottom, then the stitching.
+  ctx.fillStyle = COLORS.grapeLight;
+  ctx.fillRect(0, 0, W, 16);
+  ctx.fillStyle = COLORS.grapeDeep;
+  ctx.fillRect(0, H - 16, W, 16);
+  ctx.strokeStyle = 'rgba(255, 246, 236, 0.5)';
   ctx.lineWidth = 4;
   ctx.setLineDash([22, 16]);
   ctx.beginPath();
-  ctx.moveTo(0, 34);
-  ctx.lineTo(W, 34);
-  ctx.moveTo(0, H - 34);
-  ctx.lineTo(W, H - 34);
+  ctx.moveTo(0, 38);
+  ctx.lineTo(W, 38);
+  ctx.moveTo(0, H - 38);
+  ctx.lineTo(W, H - 38);
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Phrase, fitted to 88% of the tile so every repeat is whole.
-  ctx.fillStyle = COLORS.light;
+  const wordWidth = (size: number, word: string): number => {
+    ctx.font = `700 ${size}px ${FONT_DISPLAY}`;
+    return Array.from(word).reduce((sum, char) => sum + ctx.measureText(char).width, 0) + size * STRAP_SPACING_EM * (word.length - 1);
+  };
+  // Four items and four gaps per tile (the last gap is the seam), so every repeat is whole.
+  const tileWidth = (size: number): number =>
+    STRAP_WORDS.reduce((sum, word) => sum + wordWidth(size, word), 0) + size * STRAP_STAR_EM * 2 + size * STRAP_GAP_EM * 4;
+  const REF_SIZE = 100;
+  const size = Math.min(130, (REF_SIZE * W) / tileWidth(REF_SIZE));
+  const gap = size * STRAP_GAP_EM;
+  const starDiameter = size * STRAP_STAR_EM;
+  const widths = STRAP_WORDS.map((word) => wordWidth(size, word));
+  const content = widths[0] + widths[1] + starDiameter * 2 + gap * 3;
+
+  ctx.font = `700 ${size}px ${FONT_DISPLAY}`;
+  ctx.fillStyle = COLORS.cream;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
-  let size = 112;
-  let spacing = 14;
-  const measure = (): number => {
-    ctx.font = `700 ${size}px ${FONT_DISPLAY}`;
-    return Array.from(STRAP_PHRASE).reduce((sum, char) => sum + ctx.measureText(char).width, 0) + spacing * (STRAP_PHRASE.length - 1);
-  };
-  const total = measure();
-  const maxWidth = W * 0.88;
-  if (total > maxWidth) {
-    const factor = maxWidth / total;
-    size = Math.floor(size * factor);
-    spacing = spacing * factor;
-    measure(); // re-applies the font at the fitted size
-  }
-  drawSpaced(ctx, STRAP_PHRASE, W / 2, H / 2 + 4, spacing);
+  const cy = H / 2;
+  let x = (W - content) / 2;
+  STRAP_WORDS.forEach((word, i) => {
+    drawSpaced(ctx, word, x + widths[i] / 2, cy + size * 0.04, size * STRAP_SPACING_EM);
+    x += widths[i] + gap;
+    starPath(ctx, x + starDiameter / 2, cy, starDiameter / 2);
+    ctx.fill();
+    x += starDiameter + gap;
+  });
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
@@ -457,7 +470,7 @@ export default function Lanyard({ portrait, active, onReady, onContextLost }: La
 
   return (
     <div className="lanyard-root" style={{ width: '100%', height: '100%', touchAction: 'pan-y' }}>
-      {/* flat = no ACES tone mapping, so the painted strap and card keep their exact colours (ACES turned #FF6A1A into #EF8834). */}
+      {/* flat = no ACES tone mapping, so the painted strap and card keep their exact colours (ACES desaturates them). */}
       <Canvas
         flat
         frameloop={active ? 'always' : 'never'}
@@ -609,19 +622,6 @@ function Band({ portrait, isMobile, onReady }: BandProps) {
     ang.copy(cardBody.angvel());
     rot.copy(cardBody.rotation());
     cardBody.setAngvel({ x: ang.x, y: ang.y - rot.y * 0.25, z: ang.z }, true);
-
-    // Publish the card's screen position for the swarm. The body origin is the card's centre
-    // (the collider is centred on it). One canvas rect read per frame; no React state.
-    const canvasRect = state.gl.domElement.getBoundingClientRect();
-    const cardPos = cardBody.translation();
-    projected.set(cardPos.x, cardPos.y, cardPos.z);
-    const distance = state.camera.position.distanceTo(projected);
-    projected.project(state.camera);
-    const pxPerUnit = canvasRect.height / (2 * distance * Math.tan(THREE.MathUtils.degToRad(CAMERA_FOV / 2)));
-    badgePosition.x = canvasRect.left + (projected.x * 0.5 + 0.5) * canvasRect.width;
-    badgePosition.y = canvasRect.top + (-projected.y * 0.5 + 0.5) * canvasRect.height;
-    badgePosition.radius = CARD_HALF_DIAGONAL * pxPerUnit;
-    badgePosition.visible = true;
   });
 
   // The textures are applied from the render that follows setState, so a frame that sees both
